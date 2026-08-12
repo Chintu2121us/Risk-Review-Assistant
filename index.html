@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Risk Review Assistant — Survey to Review Comments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --paper:#E4E9F1;
+    --paper-dim:#EDF1F6;
+    --ink:#101828;
+    --ink-soft:#4B5768;
+    --steel:#3D5CFF;
+    --steel-deep:#14213D;
+    --amber:#3D5CFF;
+    --amber-soft:#E2E8FF;
+    --fair:#B7791F;
+    --fair-soft:#F5EBD8;
+    --sage:#2F7D5B;
+    --sage-soft:#E1F0E8;
+    --rust:#C0392B;
+    --rust-soft:#F6E0DD;
+    --line:#D7DEE8;
+    --line-soft:#E6EAF1;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 8px 24px -12px rgba(16,24,40,.16);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:40px 24px 120px;}
+
+  /* ---- Site header: dark bar + brand chip + tab navigation ---- */
+  .site-header{
+    background:var(--steel-deep);padding:14px 24px;position:sticky;top:0;z-index:40;
+  }
+  .header-inner{
+    max-width:1080px;margin:0 auto;display:flex;align-items:center;
+    justify-content:space-between;gap:24px;flex-wrap:wrap;
+  }
+  .brand{
+    display:flex;align-items:center;gap:9px;background:#fff;border-radius:8px;
+    padding:7px 14px 7px 9px;flex-shrink:0;
+  }
+  .brand-word{font-family:'Inter',sans-serif;font-weight:800;font-size:14px;color:var(--steel-deep);line-height:1.15;white-space:nowrap;}
+  .tabnav{display:flex;gap:2px;flex-wrap:wrap;}
+  .tab-btn{
+    background:none;border:none;color:#B9C2D6;font-family:'Inter',sans-serif;font-weight:500;
+    font-size:14px;padding:10px 14px;cursor:pointer;border-radius:6px;position:relative;
+    transition:color .15s, background .15s;
+  }
+  .tab-btn:hover{color:#fff;background:rgba(255,255,255,.07);}
+  .tab-btn.active{color:#fff;}
+  .tab-btn.active::after{
+    content:'';position:absolute;left:12px;right:12px;bottom:1px;height:2px;
+    background:var(--steel);border-radius:2px;
+  }
+  .tab-btn.ready:not(.active)::before{
+    content:'';position:absolute;top:7px;right:6px;width:6px;height:6px;
+    border-radius:50%;background:var(--sage);
+  }
+  .header-accent{height:3px;background:linear-gradient(90deg,var(--steel),#8CA1FF);}
+  .new-review-btn{
+    background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.22);
+    font-family:'Inter',sans-serif;font-weight:600;font-size:13px;padding:9px 14px;
+    border-radius:7px;cursor:pointer;white-space:nowrap;transition:background .15s;
+  }
+  .new-review-btn:hover{background:rgba(255,255,255,.16);}
+
+  .restore-banner{
+    background:var(--amber-soft);color:var(--steel-deep);font-size:13px;
+    padding:10px 24px;display:flex;justify-content:center;align-items:center;gap:14px;
+    border-bottom:1px solid var(--line);flex-wrap:wrap;text-align:center;
+  }
+  .restore-banner .mini{background:#fff;flex-shrink:0;}
+
+  .step-nav{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:30px;padding-top:22px;border-top:1px solid var(--line);
+  }
+  .step-nav .spacer{flex:1;}
+
+  .autosave-note{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--fair);margin-top:8px;min-height:14px;}
+
+  /* ---- Hero band ---- */
+  .hero-band{background:var(--paper);padding:56px 24px 44px;border-bottom:1px solid var(--line);}
+  .hero-inner{max-width:800px;margin:0 auto;}
+  .eyebrow-flat{font-family:'Inter',sans-serif;color:var(--ink-soft);font-size:14px;margin-bottom:14px;}
+  h1{
+    font-family:'Inter',sans-serif;font-weight:800;
+    font-size:clamp(34px,5vw,54px);line-height:1.06;margin:0;
+    letter-spacing:-.02em;color:var(--steel-deep);
+  }
+  .hero-desc{color:var(--ink-soft);font-size:15.5px;max-width:64ch;margin:20px 0 28px;line-height:1.65;}
+  .cta-btn{
+    background:var(--steel-deep);color:#fff;font-family:'Inter',sans-serif;font-weight:700;
+    font-size:14.5px;padding:14px 28px;border:none;border-radius:8px;cursor:pointer;
+    transition:background .15s, transform .08s;
+  }
+  .cta-btn:hover{background:#1E3A5F;}
+  .cta-btn:active{transform:scale(.98);}
+
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;animation:tabIn .22s ease;}
+  @keyframes tabIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+
+  section.card{
+    background:#FFFFFF;border:1px solid var(--line);border-radius:12px;
+    padding:28px 28px 30px;margin-bottom:22px;box-shadow:var(--shadow);
+  }
+  .card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:18px;}
+  .card-num{
+    font-family:'IBM Plex Mono',monospace;color:var(--steel);font-size:12px;
+    letter-spacing:.1em;text-transform:uppercase;
+  }
+  h2{
+    font-family:'Inter',sans-serif;font-weight:700;font-size:19px;margin:2px 0 0;color:var(--steel-deep);
+  }
+  .hint{color:var(--ink-soft);font-size:13.5px;margin:6px 0 0;}
+
+  label.field{display:block;margin-bottom:16px;}
+  label.field .lbl{
+    display:block;font-size:12.5px;font-weight:600;color:var(--steel-deep);
+    margin-bottom:6px;letter-spacing:.01em;
+  }
+  input[type=text],input[type=password],select,textarea{
+    width:100%;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);
+    background:var(--paper-dim);border:1px solid var(--line);border-radius:8px;
+    padding:10px 12px;outline:none;transition:border-color .15s, background .15s;
+  }
+  textarea{resize:vertical;line-height:1.5;}
+  input:focus,select:focus,textarea:focus{border-color:var(--steel);background:#fff;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:640px){.row2{grid-template-columns:1fr;}}
+
+  .drop{
+    border:1.5px dashed var(--line);border-radius:10px;padding:28px 20px;
+    text-align:center;background:var(--paper-dim);cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .drop:hover,.drop.drag,.drop:focus{border-color:var(--amber);background:var(--amber-soft);outline:none;}
+  .drop .icon{font-family:'IBM Plex Mono',monospace;font-size:22px;color:var(--steel);margin-bottom:6px;}
+  .drop .fname{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--sage);margin-top:8px;word-break:break-all;}
+  input[type=file]{display:none;}
+
+  button{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:14px;cursor:pointer;
+    border-radius:8px;border:none;padding:12px 20px;transition:transform .08s, opacity .15s;
+  }
+  button:active{transform:scale(.98);}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-primary{background:var(--steel-deep);color:#F5F7FB;}
+  .btn-primary:hover:not(:disabled){background:#1E3A5F;}
+  .btn-amber{background:var(--amber);color:#FFFFFF;}
+  .btn-amber:hover:not(:disabled){opacity:.9;}
+  .btn-ghost{background:transparent;color:var(--steel-deep);border:1px solid var(--line);}
+  .btn-ghost:hover:not(:disabled){background:var(--paper-dim);}
+  .btn-row{display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap;}
+
+  .status{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);
+    display:flex;align-items:center;gap:8px;min-height:18px;
+  }
+  .spinner{
+    width:12px;height:12px;border-radius:50%;
+    border:2px solid var(--line);border-top-color:var(--amber);
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .status.err{color:var(--rust);}
+  .status.ok{color:var(--sage);}
+
+  /* Section dividers: a hairline + amber marker between every fieldset after the first */
+  fieldset{border:none;padding:0;margin:0;}
+  fieldset + fieldset{margin-top:30px;padding-top:26px;border-top:1px solid var(--line);}
+  legend{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:15px;color:var(--steel-deep);
+    padding:0;width:100%;margin-bottom:16px;display:flex;align-items:center;gap:9px;
+  }
+  legend::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0;}
+
+  .gauge-grid{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+  .gauge-row{display:grid;grid-template-columns:180px 1fr 70px;gap:12px;align-items:center;}
+  @media(max-width:640px){.gauge-row{grid-template-columns:1fr;}}
+  .gauge-label{font-size:13px;font-weight:600;color:var(--steel-deep);}
+  .gauge-track{height:8px;background:var(--line-soft);border-radius:4px;overflow:hidden;position:relative;}
+  .gauge-fill{height:100%;border-radius:4px;transition:width .5s ease;}
+  .gauge-fill.good{background:var(--sage);}
+  .gauge-fill.fair{background:var(--fair);}
+  .gauge-fill.poor{background:var(--rust);}
+  .gauge-val{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;text-align:right;
+    text-transform:uppercase;letter-spacing:.05em;
+  }
+  .gauge-val.good{color:var(--sage);}
+  .gauge-val.fair{color:var(--fair);}
+  .gauge-val.poor{color:var(--rust);}
+
+  .outlook-item{
+    border:1px solid var(--line-soft);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:var(--paper-dim);
+  }
+  .outlook-item .top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;}
+  .outlook-item .top .pname{font-weight:600;font-size:13.5px;color:var(--steel-deep);}
+  .outlook-item select{width:120px;}
+  .outlook-item textarea{min-height:64px;font-size:13.5px;}
+
+  .loss-table-wrap{overflow-x:auto;margin-top:6px;}
+  .loss-table{width:100%;border-collapse:collapse;min-width:520px;}
+  .loss-table th,.loss-table td{border:1px solid var(--line);padding:8px;font-size:13px;}
+  .loss-table th{background:var(--paper-dim);font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--steel-deep);}
+  .loss-table td input{border:none;background:transparent;padding:2px;font-family:'IBM Plex Mono',monospace;font-size:13px;width:100%;}
+  .loss-table td:first-child{font-weight:600;background:var(--paper-dim);}
+  .loss-table td:first-child input{font-weight:600;font-family:'Inter',sans-serif;}
+  .loss-table td:last-child{text-align:center;padding:4px;}
+
+  /* Annexure image tool */
+  .annex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;margin-top:20px;}
+  .annex-item{
+    border:1px solid var(--line-soft);border-radius:10px;overflow:hidden;
+    background:var(--paper-dim);display:flex;flex-direction:column;
+  }
+  .annex-thumb{width:100%;height:140px;background:#E4DFCF;overflow:hidden;}
+  .annex-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .annex-meta{padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;}
+  .annex-tag{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--amber);font-weight:600;
+  }
+  .annex-title{font-size:13px;padding:7px 9px;}
+  .annex-actions{display:flex;gap:6px;justify-content:flex-end;}
+  .mini{
+    padding:4px 9px;font-size:12px;border-radius:6px;background:transparent;
+    border:1px solid var(--line);color:var(--steel-deep);font-weight:600;
+  }
+  .mini:hover{background:#fff;}
+  .mini.danger{color:var(--rust);border-color:var(--rust-soft);}
+  .mini.danger:hover{background:var(--rust-soft);}
+
+  footer{
+    margin-top:36px;padding-top:20px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--ink-soft);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  }
+  footer .priv{font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+  a{color:var(--steel);}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;
+    font-size:11px;padding:3px 9px;border-radius:20px;background:var(--sage-soft);color:var(--sage);
+    text-transform:uppercase;letter-spacing:.04em;font-weight:600;
+  }
+
+  /* PDF chat — floating, app-only, never part of the exported document */
+  .chat-fab{
+    position:fixed;right:22px;bottom:22px;z-index:60;
+    width:56px;height:56px;border-radius:50%;
+    background:var(--steel-deep);color:var(--paper);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:var(--shadow);border:none;cursor:pointer;
+    font-size:22px;line-height:1;transition:transform .15s, background .15s;
+  }
+  .chat-fab:hover{background:var(--steel);transform:scale(1.05);}
+  .chat-fab .fab-badge{
+    position:absolute;top:-4px;right:-4px;background:var(--amber);color:#FFFFFF;
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:700;
+    border-radius:10px;padding:2px 6px;display:none;white-space:nowrap;
+  }
+  .chat-panel{
+    position:fixed;right:22px;bottom:90px;z-index:60;
+    width:380px;max-width:calc(100vw - 44px);height:520px;max-height:70vh;
+    background:#FFFEFB;border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);display:none;flex-direction:column;overflow:hidden;
+  }
+  .chat-panel.open{display:flex;}
+  .chat-head{
+    padding:13px 14px 11px 16px;border-bottom:1px solid var(--line);
+    display:flex;flex-direction:column;gap:2px;background:var(--paper-dim);
+  }
+  .chat-head .title{
+    font-family:'Inter',sans-serif;font-weight:700;font-size:15px;color:var(--steel-deep);
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+  }
+  .chat-head .title-actions{display:flex;align-items:center;gap:4px;}
+  .chat-icon-btn{
+    background:none;border:none;color:var(--ink-soft);cursor:pointer;
+    font-family:'IBM Plex Mono',monospace;padding:3px 7px;border-radius:6px;font-size:11px;
+  }
+  .chat-icon-btn:hover{background:var(--line-soft);color:var(--ink);}
+  .chat-head .not-included{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--rust);letter-spacing:.02em;
+  }
+  .chat-messages{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+  .chat-msg{max-width:85%;padding:9px 12px;border-radius:12px;font-size:13.5px;line-height:1.45;white-space:pre-wrap;}
+  .chat-msg.user{align-self:flex-end;background:var(--amber-soft);color:var(--ink);border-bottom-right-radius:3px;}
+  .chat-msg.model{align-self:flex-start;background:var(--paper-dim);border:1px solid var(--line-soft);color:var(--ink);border-bottom-left-radius:3px;}
+  .chat-msg.system{align-self:center;color:var(--ink-soft);font-size:12px;font-style:italic;text-align:center;max-width:100%;}
+  .chat-typing{align-self:flex-start;display:flex;gap:4px;padding:9px 12px;}
+  .chat-typing span{width:6px;height:6px;border-radius:50%;background:var(--line);animation:typingBounce 1s infinite ease-in-out;display:block;}
+  .chat-typing span:nth-child(2){animation-delay:.15s;}
+  .chat-typing span:nth-child(3){animation-delay:.3s;}
+  @keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-4px);opacity:1;}}
+  .chat-input-row{
+    display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);background:#fff;
+  }
+  .chat-input-row textarea{
+    flex:1;resize:none;font-size:13.5px;padding:8px 10px;min-height:20px;max-height:80px;
+  }
+  .chat-send{
+    background:var(--steel-deep);color:var(--paper);border:none;border-radius:8px;
+    padding:0 14px;font-weight:600;font-size:13px;cursor:pointer;
+  }
+  .chat-send:disabled{opacity:.4;cursor:not-allowed;}
+  @media(max-width:480px){
+    .chat-panel{right:12px;bottom:82px;width:calc(100vw - 24px);}
+    .chat-fab{right:12px;bottom:12px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M5 5 L16 5 L9.5 16 L16 27 L5 27 Z" fill="#8CA1FF"/>
+        <path d="M16 5 L26 5 L19.5 16 L26 27 L16 27 Z" fill="#14213D"/>
+      </svg>
+      <span class="brand-word">Risk Review Assistant</span>
+    </div>
+    <nav class="tabnav" id="tabnav">
+      <button class="tab-btn active" type="button" data-tab="config">Configure</button>
+      <button class="tab-btn" type="button" data-tab="upload">Upload</button>
+      <button class="tab-btn" type="button" data-tab="review">Review</button>
+      <button class="tab-btn" type="button" data-tab="annexure">Annexure</button>
+      <button class="tab-btn" type="button" data-tab="export">Export</button>
+    </nav>
+    <button class="new-review-btn" type="button" id="newReviewBtn" title="Clear this review and start a fresh one">+ New Review</button>
+  </div>
+</header>
+<div class="header-accent"></div>
+<div class="restore-banner" id="restoreBanner" style="display:none;">
+  <span id="restoreBannerText"></span>
+  <button type="button" class="mini" id="restoreBannerDismiss">Dismiss</button>
+</div>
+
+<div class="hero-band">
+  <div class="hero-inner">
+    <div class="eyebrow-flat">Client-side Risk Tool</div>
+    <h1>Survey to Review<br>Comments, in Minutes</h1>
+    <p class="hero-desc">Upload a property risk survey PDF, extract and rate the parameters with Gemini, review the findings, attach supporting photos, then export a formatted Word review comments document. Use the chat bubble in the corner to dig into specific figures or scrutinize a parameter further — that conversation stays in the app and never enters the exported document. Your API key is never stored and must be re-entered each session, but your survey data, review edits, and photos are auto-saved in this browser and survive a page refresh — until you export or start a new review.</p>
+    <button class="cta-btn" type="button" id="heroCta">Begin — Configure Gemini</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- STEP 1: CONFIG -->
+
+  <section class="card tab-panel active" id="card-config" data-tab="config">
+    <div class="card-head">
+      <div><div class="card-num">Step 01</div><h2>Configure Gemini</h2></div>
+    </div>
+    <p class="hint">Not stored anywhere — your key is kept only in this page's memory and sent directly to Google's API. Re-enter it each time you use this tool.</p>
+    <div class="row2">
+      <label class="field">
+        <span class="lbl">Gemini API key</span>
+        <input type="password" id="apiKey" placeholder="AIza..." autocomplete="off" />
+      </label>
+      <label class="field">
+        <span class="lbl">Model</span>
+        <select id="model">
+          <option value="gemini-3.6-flash">gemini-3.6-flash (recommended — fast, agentic-tuned)</option>
+          <option value="gemini-3.1-pro">gemini-3.1-pro (highest quality, 2M context — best for long/complex surveys)</option>
+          <option value="gemini-3.5-flash">gemini-3.5-flash (previous gen, still strong)</option>
+          <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (fastest, cheapest)</option>
+        </select>
+      </label>
+    </div>
+    <div class="step-nav">
+      <div class="spacer"></div>
+      <button type="button" class="btn-primary step-next" data-tab="upload">Next: Upload →</button>
+    </div>
+  </section>
+
+  <!-- STEP 2: UPLOAD -->
+  <section class="card tab-panel" id="card-upload" data-tab="upload">
+    <div class="card-head">
+      <div><div class="card-num">Step 02</div><h2>Upload the survey report</h2></div>
+    </div>
+    <p class="hint">PDF risk survey / property risk evaluation report. Text-based PDFs work best.</p>
+    <div class="drop" id="dropZone">
+      <div class="icon">⇪</div>
+      <div>Drop the survey PDF here, or click to browse</div>
+      <div class="fname" id="fname">No file selected</div>
+    </div>
+    <input type="file" id="fileInput" accept="application/pdf" />
+    <div class="btn-row">
+      <button class="btn-primary" id="analyzeBtn" disabled>Extract &amp; Analyze with Gemini</button>
+      <span class="status" id="analyzeStatus"></span>
+    </div>
+    <div class="step-nav">
+      <button type="button" class="btn-ghost step-back" data-tab="config">← Back</button>
+      <div class="spacer"></div>
+      <button type="button" class="btn-ghost step-next" data-tab="review">Next: Review →</button>
+    </div>
+  </section>
+
+  <!-- STEP 3: REVIEW -->
+  <section class="card tab-panel" id="card-review" data-tab="review">
+    <div class="card-head">
+      <div><div class="card-num">Step 03</div><h2>Review &amp; edit findings</h2></div>
+      <span class="badge" id="outlookBadge" style="display:none;"></span>
+    </div>
+    <p class="hint">Gemini's draft — everything here is editable before export.</p>
+
+    <fieldset>
+      <legend>Header</legend>
+      <div class="row2">
+        <label class="field"><span class="lbl">Original Insured</span><input type="text" id="f_insured"></label>
+        <label class="field"><span class="lbl">Report Date</span><input type="text" id="f_reportDate"></label>
+      </div>
+      <label class="field"><span class="lbl">Occupancy</span><textarea id="f_occupancy" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Locations</span><textarea id="f_locations" rows="2"></textarea></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Brief of Risk</legend>
+      <label class="field"><span class="lbl">Started in Year</span><textarea id="f_startedYear" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Number of Units and Capacity</span><textarea id="f_unitsCapacity" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Main Hazards</span><textarea id="f_mainHazards" rows="3"></textarea></label>
+      <label class="field"><span class="lbl">Process details</span><textarea id="f_processDetails" rows="3"></textarea></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Layout &amp; Construction</legend>
+      <label class="field"><span class="lbl">Layout</span><textarea id="f_layout" rows="3"></textarea></label>
+      <label class="field"><span class="lbl">Construction</span><textarea id="f_construction" rows="3"></textarea></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Fire Protection System</legend>
+      <label class="field"><span class="lbl">Fire Hydrants System</span><textarea id="f_fireHydrants" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Sprinkler System</span><textarea id="f_sprinklerSystem" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Special Extinguishing Systems</span><textarea id="f_specialExtinguishing" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Fire Drills, In-House Fire Team, and Staff Training</span><textarea id="f_fireDrills" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Heat and Smoke Detection Systems</span><textarea id="f_detectionSystems" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Issues Identified in Fire Protection System</span><textarea id="f_fireProtectionIssues" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Nearest Public Fire Brigade</span><textarea id="f_nearestFireBrigade" rows="2"></textarea></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Maintenance and Inspection</legend>
+      <label class="field"><span class="lbl">Maintenance</span><textarea id="f_maintenance" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Inspection</span><textarea id="f_inspection" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Spares Provisioning</span><textarea id="f_sparesProvisioning" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Issues</span><textarea id="f_maintenanceIssues" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Preventive Measures</span><textarea id="f_preventiveMeasures" rows="2"></textarea></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Exposure &amp; History</legend>
+      <label class="field"><span class="lbl">NAT CAT exposure</span><textarea id="f_natCat" rows="3"></textarea></label>
+      <label class="field"><span class="lbl">Loss History</span><textarea id="f_lossHistory" rows="2"></textarea></label>
+      <label class="field"><span class="lbl">Recommendations status</span><textarea id="f_recommendationsStatus" rows="2"></textarea></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Loss Estimates</legend>
+      <label class="field"><span class="lbl">PML Scenario assumed</span><textarea id="f_pmlScenario" rows="3"></textarea></label>
+      <div class="loss-table-wrap">
+        <table class="loss-table" id="lossTable">
+          <thead><tr><th style="width:30%;">Basis</th><th>Property Damage</th><th>Business Interruption</th><th>Total Loss estimates</th><th style="width:34px;"></th></tr></thead>
+          <tbody id="lossTableBody"></tbody>
+        </table>
+      </div>
+      <button type="button" class="btn-ghost" id="addLossRowBtn" style="margin-top:10px;">+ Add row</button>
+      <p class="hint" style="margin-top:8px;">Row labels, and rows themselves, are fully editable — add or remove rows to match whatever loss basis this survey actually reports (PML, MFL, EML, NLE, etc.).</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Outlook Comments</legend>
+      <label class="field" style="max-width:220px;">
+        <span class="lbl">Overall Outlook</span>
+        <select id="f_outlookOverall">
+          <option>Good</option><option>Fair</option><option>Poor</option>
+        </select>
+      </label>
+      <div class="gauge-grid" id="gaugeGrid"></div>
+      <div id="outlookItems" style="margin-top:18px;"></div>
+    </fieldset>
+    <div class="step-nav">
+      <button type="button" class="btn-ghost step-back" data-tab="upload">← Back</button>
+      <div class="spacer"></div>
+      <button type="button" class="btn-ghost step-next" data-tab="annexure">Next: Annexure →</button>
+    </div>
+  </section>
+
+  <!-- STEP 4: ANNEXURE -->
+  <section class="card tab-panel" id="card-annexure" data-tab="annexure">
+    <div class="card-head">
+      <div><div class="card-num">Step 04</div><h2>Annexure — photos &amp; drawings</h2></div>
+      <span class="badge" id="annexCountBadge" style="display:none;"></span>
+    </div>
+    <p class="hint">Add site photos, layout plans, or any supporting images. Paste from clipboard (Ctrl/Cmd+V), drag files in, or click to browse. Each image gets an editable title and is appended to the Word document as a numbered Annexure, in the order shown below.</p>
+
+    <div class="drop" id="annexDrop" tabindex="0">
+      <div class="icon">🖼</div>
+      <div>Drop images here, paste with Ctrl/Cmd+V, or click to browse</div>
+      <div class="fname" id="annexHint">No images added yet</div>
+    </div>
+    <input type="file" id="annexFileInput" accept="image/*" multiple />
+    <div class="autosave-note" id="autosaveNote"></div>
+
+    <div class="annex-grid" id="annexGrid"></div>
+    <div class="step-nav">
+      <button type="button" class="btn-ghost step-back" data-tab="review">← Back</button>
+      <div class="spacer"></div>
+      <button type="button" class="btn-ghost step-next" data-tab="export">Next: Export →</button>
+    </div>
+  </section>
+
+  <!-- STEP 5: EXPORT -->
+  <section class="card tab-panel" id="card-export" data-tab="export">
+    <div class="card-head">
+      <div><div class="card-num">Step 05</div><h2>Export Word document</h2></div>
+    </div>
+    <label class="field"><span class="lbl">Prepared by</span><input type="text" id="preparedBy" placeholder="Your name"></label>
+    <div class="btn-row">
+      <button class="btn-amber" id="exportBtn">Generate &amp; Download .docx</button>
+      <span class="status" id="exportStatus"></span>
+    </div>
+    <div class="step-nav">
+      <button type="button" class="btn-ghost step-back" data-tab="annexure">← Back</button>
+      <div class="spacer"></div>
+      <button type="button" class="btn-ghost" id="exportNewReviewBtn">+ Start New Review</button>
+    </div>
+  </section>
+
+  <footer>
+    <span>Built for property risk survey review workflows.</span>
+    <span class="priv">key: never stored, re-enter each session · analysis: direct browser → Gemini call · chat: scratchpad only, never exported</span>
+  </footer>
+</div>
+
+<!-- PDF CHAT — floating scratchpad, excluded entirely from the exported .docx -->
+<button class="chat-fab" id="chatFab" title="Ask questions about the survey PDF">
+  💬<span class="fab-badge" id="chatBadge"></span>
+</button>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-head">
+    <div class="title">
+      <span>Ask the survey PDF</span>
+      <div class="title-actions">
+        <button class="chat-icon-btn" id="chatClear" title="Clear conversation">Clear</button>
+        <button class="chat-icon-btn" id="chatClose" title="Close">✕</button>
+      </div>
+    </div>
+    <div class="not-included">Not included in the exported document</div>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-row">
+    <textarea id="chatInput" rows="1" placeholder="e.g. What's the sprinkler density in the soap noodle warehouse?"></textarea>
+    <button class="chat-send" id="chatSend">Ask</button>
+  </div>
+</div>
+
+<script>
+// ---------- pdf.js worker ----------
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ---------- state ----------
+let extractedText = '';
+let currentData = null;
+let annexureImages = []; // {id, dataUrl, width, height, title}
+let lossEstimateRows = []; // {label, pd, bi, total}
+let annexIdCounter = 0;
+
+const OUTLOOK_PARAMS = [
+  'Maintenance and Inspection System',
+  'Fire Protection System',
+  'Construction',
+  'Layout',
+  'Loss History',
+  'Fire/Explosion Hazard',
+  'AOG Exposure at Site'
+];
+
+// ---------- tab navigation ----------
+const TAB_IDS = ['config','upload','review','annexure','export'];
+
+function activateTab(tab){
+  TAB_IDS.forEach(id => {
+    const panel = document.querySelector('.tab-panel[data-tab="' + id + '"]');
+    const btn = document.querySelector('.tab-btn[data-tab="' + id + '"]');
+    if(panel) panel.classList.toggle('active', id === tab);
+    if(btn) btn.classList.toggle('active', id === tab);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  scheduleSave();
+}
+function markTabReady(tab){
+  const btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
+  if(btn) btn.classList.add('ready');
+}
+function getActiveTab(){
+  const active = document.querySelector('.tab-panel.active');
+  return active ? active.dataset.tab : 'config';
+}
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+});
+document.querySelectorAll('.step-next, .step-back').forEach(btn => {
+  btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+});
+document.getElementById('heroCta').addEventListener('click', () => {
+  activateTab('config');
+  document.getElementById('apiKey').focus();
+});
+document.getElementById('newReviewBtn').addEventListener('click', () => startNewReview());
+document.getElementById('exportNewReviewBtn').addEventListener('click', () => startNewReview());
+document.getElementById('restoreBannerDismiss').addEventListener('click', () => {
+  document.getElementById('restoreBanner').style.display = 'none';
+});
+
+// ---------- Gemini API key (never persisted — re-entered every session) ----------
+const apiKeyEl = document.getElementById('apiKey');
+const modelEl = document.getElementById('model');
+apiKeyEl.addEventListener('input', refreshReady);
+// Auto-advance once a plausible key has been entered and the field loses focus
+apiKeyEl.addEventListener('blur', () => {
+  if(apiKeyEl.value.trim().length > 10){
+    markTabReady('config');
+    if(getActiveTab() === 'config') activateTab('upload');
+  }
+});
+
+function refreshReady(){
+  const hasKey = apiKeyEl.value.trim().length > 10;
+  const hasFile = !!window._pdfFile;
+  document.getElementById('analyzeBtn').disabled = !(hasKey && hasFile);
+}
+
+// ---------- file drop / picker (survey PDF) ----------
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+dropZone.onclick = () => fileInput.click();
+['dragover'].forEach(evt => dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add('drag'); }));
+['dragleave','drop'].forEach(evt => dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.remove('drag'); }));
+dropZone.addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if(f) handleFile(f);
+});
+fileInput.addEventListener('change', e => {
+  const f = e.target.files[0];
+  if(f) handleFile(f);
+});
+function handleFile(f){
+  if(f.type !== 'application/pdf'){ alert('Please choose a PDF file.'); return; }
+  window._pdfFile = f;
+  window._pdfFileName = null;
+  const fnameEl = document.getElementById('fname');
+  fnameEl.textContent = f.name + ' — extracting text…';
+  extractedText = '';
+  refreshReady();
+  resetChatForNewFile();
+
+  // Extract in the background so the chat is usable right away, without waiting for "Analyze"
+  extractPdfText(f).then(text => {
+    extractedText = text;
+    const chars = text.trim().length;
+    fnameEl.textContent = f.name + (chars > 0 ? ` (${chars.toLocaleString()} characters extracted)` : ' — no readable text found');
+    if(chars > 0 && typeof notifyChatPdfReady === 'function') notifyChatPdfReady();
+    scheduleSave();
+  }).catch(err => {
+    console.error(err);
+    fnameEl.textContent = f.name + ' — could not extract text (scanned PDF?)';
+  });
+}
+
+// ---------- PDF text extraction ----------
+async function extractPdfText(file){
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  let text = '';
+  for(let p=1; p<=pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    text += content.items.map(i => i.str).join(' ') + '\n\n';
+  }
+  return text;
+}
+
+// ---------- schema / prompt ----------
+const SCHEMA_KEYS = [
+  'insured','occupancy','locations','reportDate','startedYear','unitsCapacity',
+  'mainHazards','processDetails','layout','construction','fireHydrants',
+  'sprinklerSystem','specialExtinguishing','fireDrills','detectionSystems',
+  'fireProtectionIssues','nearestFireBrigade','maintenance','inspection',
+  'sparesProvisioning','maintenanceIssues','preventiveMeasures','natCat',
+  'lossHistory','recommendationsStatus','pmlScenario'
+];
+
+function buildPrompt(text){
+  return `You are a senior property risk engineer preparing underwriting "Review Comments" from a facility risk survey report. Read the survey text below and produce a structured JSON analysis. Be specific, cite figures/facts from the survey where available, and use professional risk-engineering language (third person, concise). If a value is genuinely not stated in the survey, write "Not stated in survey" for that field rather than inventing it.
+
+Return ONLY valid JSON (no markdown fences, no commentary) matching exactly this shape:
+
+{
+  "insured": string,
+  "occupancy": string,
+  "locations": string,
+  "reportDate": string,
+  "startedYear": string,
+  "unitsCapacity": string,
+  "mainHazards": string,
+  "processDetails": string,
+  "layout": string,
+  "construction": string,
+  "fireHydrants": string,
+  "sprinklerSystem": string,
+  "specialExtinguishing": string,
+  "fireDrills": string,
+  "detectionSystems": string,
+  "fireProtectionIssues": string,
+  "nearestFireBrigade": string,
+  "maintenance": string,
+  "inspection": string,
+  "sparesProvisioning": string,
+  "maintenanceIssues": string,
+  "preventiveMeasures": string,
+  "natCat": string,
+  "lossHistory": string,
+  "recommendationsStatus": string,
+  "pmlScenario": string,
+  "lossEstimates": [
+    {"label": string, "pd": string, "bi": string, "total": string}
+  ],
+  "outlookOverall": "Good" | "Fair" | "Poor",
+  "outlook": [
+    {"parameter": "Maintenance and Inspection System", "rating": "Good"|"Fair"|"Poor", "remarks": string},
+    {"parameter": "Fire Protection System", "rating": "Good"|"Fair"|"Poor", "remarks": string},
+    {"parameter": "Construction", "rating": "Good"|"Fair"|"Poor", "remarks": string},
+    {"parameter": "Layout", "rating": "Good"|"Fair"|"Poor", "remarks": string},
+    {"parameter": "Loss History", "rating": "Good"|"Fair"|"Poor", "remarks": string},
+    {"parameter": "Fire/Explosion Hazard", "rating": "Good"|"Fair"|"Poor", "remarks": string},
+    {"parameter": "AOG Exposure at Site", "rating": "Good"|"Fair"|"Poor", "remarks": string}
+  ]
+}
+
+Rating guidance: Good = meets/exceeds best practice, no significant gaps. Fair = adequate but with some deficiencies or room for improvement. Poor = significant deficiencies, immediate attention warranted.
+
+Loss estimates guidance: include one row per loss basis the survey actually reports — e.g. Total Sum Insured, Probable Maximum Loss (PML), Maximum Foreseeable Loss (MFL), Estimated Maximum Loss (EML), Normal Loss Expectancy (NLE), Maximum Possible Loss (MPL), or whatever terminology the survey itself uses. Use the survey's own label for each row rather than forcing it into a fixed set of three, and do not invent a row the survey doesn't contain.
+
+--- SURVEY TEXT START ---
+${text.slice(0, 900000)}
+--- SURVEY TEXT END ---`;
+}
+
+async function callGemini(apiKey, model, prompt){
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.2, responseMimeType: 'application/json' }
+    })
+  });
+  if(!res.ok){
+    const errText = await res.text();
+    throw new Error(`Gemini API error ${res.status}: ${errText.slice(0,300)}`);
+  }
+  const json = await res.json();
+  const cand = json.candidates && json.candidates[0];
+  if(!cand || !cand.content || !cand.content.parts || !cand.content.parts[0]){
+    throw new Error('Gemini returned no content — check your API key/model and try again.');
+  }
+  let raw = cand.content.parts.map(p => p.text || '').join('');
+  raw = raw.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+  return JSON.parse(raw);
+}
+
+// ---------- Analyze ----------
+document.getElementById('analyzeBtn').onclick = async () => {
+  const status = document.getElementById('analyzeStatus');
+  const apiKey = apiKeyEl.value.trim();
+  const model = modelEl.value;
+  try{
+    if(!extractedText){
+      status.className = 'status'; status.innerHTML = '<span class="spinner"></span> Extracting PDF text…';
+      extractedText = await extractPdfText(window._pdfFile);
+    }
+    if(extractedText.trim().length < 50){
+      throw new Error('Could not extract readable text — this PDF may be scanned/image-based.');
+    }
+    status.innerHTML = '<span class="spinner"></span> Sending to Gemini for analysis…';
+    const prompt = buildPrompt(extractedText);
+    const data = await callGemini(apiKey, model, prompt);
+    currentData = normalizeData(data);
+    populateForm(currentData);
+    status.className = 'status ok'; status.textContent = 'Analysis complete — review below.';
+    markTabReady('review');
+    markTabReady('annexure');
+    markTabReady('export');
+    activateTab('review');
+  } catch(err){
+    console.error(err);
+    status.className = 'status err'; status.textContent = err.message || String(err);
+  }
+};
+
+function defaultLossRows(){
+  return [
+    {label:'Top location Sum Insured', pd:'', bi:'', total:''},
+    {label:'Report PML', pd:'', bi:'', total:''},
+    {label:'Adjusted PML', pd:'', bi:'', total:''}
+  ];
+}
+
+function normalizeData(data){
+  data = data || {};
+
+  if(Array.isArray(data.lossEstimates) && data.lossEstimates.length){
+    data.lossEstimates = data.lossEstimates.map(r => ({
+      label: (r && r.label) || '',
+      pd: (r && r.pd) || '',
+      bi: (r && r.bi) || '',
+      total: (r && r.total) || ''
+    }));
+  } else if(data.lossEstimates && typeof data.lossEstimates === 'object' && !Array.isArray(data.lossEstimates)){
+    // backward-compat: older fixed 3-key object shape
+    const legacy = data.lossEstimates;
+    const labelMap = [
+      ['topLocationSumInsured','Top location Sum Insured'],
+      ['reportPML','Report PML'],
+      ['adjustedPML','Adjusted PML']
+    ];
+    data.lossEstimates = labelMap.map(([key,label]) => {
+      const v = legacy[key] || {};
+      return { label, pd: v.pd || '', bi: v.bi || '', total: v.total || '' };
+    });
+  } else {
+    data.lossEstimates = defaultLossRows();
+  }
+
+  if(!Array.isArray(data.outlook)) data.outlook = [];
+  OUTLOOK_PARAMS.forEach(p => {
+    if(!data.outlook.find(o => o.parameter === p)){
+      data.outlook.push({parameter:p, rating:'Fair', remarks:''});
+    }
+  });
+  data.outlookOverall = data.outlookOverall || 'Fair';
+  return data;
+}
+
+// ---------- populate review form ----------
+function populateForm(d){
+  SCHEMA_KEYS.forEach(k => {
+    const el = document.getElementById('f_' + k);
+    if(el) el.value = d[k] || '';
+  });
+  lossEstimateRows = (d.lossEstimates || defaultLossRows()).map(r => ({...r}));
+  renderLossTable();
+  document.getElementById('f_outlookOverall').value = d.outlookOverall || 'Fair';
+
+  const badge = document.getElementById('outlookBadge');
+  badge.style.display = 'inline-flex';
+  badge.textContent = 'Outlook: ' + (d.outlookOverall || 'Fair');
+
+  renderOutlook(d.outlook);
+}
+
+function ratingClass(r){
+  r = (r||'').toLowerCase();
+  if(r==='good') return 'good';
+  if(r==='poor') return 'poor';
+  return 'fair';
+}
+function ratingWidth(r){
+  r = (r||'').toLowerCase();
+  if(r==='good') return '90%';
+  if(r==='poor') return '25%';
+  return '58%';
+}
+
+// ---------- editable loss-estimates table ----------
+function escHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderLossTable(){
+  const tbody = document.getElementById('lossTableBody');
+  tbody.innerHTML = '';
+
+  lossEstimateRows.forEach((row, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" class="le-label" data-idx="${idx}" placeholder="e.g. Report PML" value="${escHtml(row.label)}"></td>
+      <td><input type="text" class="le-pd" data-idx="${idx}" value="${escHtml(row.pd)}"></td>
+      <td><input type="text" class="le-bi" data-idx="${idx}" value="${escHtml(row.bi)}"></td>
+      <td><input type="text" class="le-total" data-idx="${idx}" value="${escHtml(row.total)}"></td>
+      <td><button type="button" class="mini danger" data-idx="${idx}" title="Remove row">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('.le-label').forEach(inp => inp.addEventListener('input', e => {
+    lossEstimateRows[+e.target.dataset.idx].label = e.target.value;
+  }));
+  tbody.querySelectorAll('.le-pd').forEach(inp => inp.addEventListener('input', e => {
+    lossEstimateRows[+e.target.dataset.idx].pd = e.target.value;
+  }));
+  tbody.querySelectorAll('.le-bi').forEach(inp => inp.addEventListener('input', e => {
+    lossEstimateRows[+e.target.dataset.idx].bi = e.target.value;
+  }));
+  tbody.querySelectorAll('.le-total').forEach(inp => inp.addEventListener('input', e => {
+    lossEstimateRows[+e.target.dataset.idx].total = e.target.value;
+  }));
+  tbody.querySelectorAll('button.mini.danger').forEach(btn => btn.addEventListener('click', e => {
+    lossEstimateRows.splice(+e.currentTarget.dataset.idx, 1);
+    renderLossTable();
+    scheduleSave();
+  }));
+}
+
+document.getElementById('addLossRowBtn').onclick = () => {
+  lossEstimateRows.push({label:'', pd:'', bi:'', total:''});
+  renderLossTable();
+  scheduleSave();
+};
+
+function renderOutlook(items){
+  const gaugeGrid = document.getElementById('gaugeGrid');
+  const container = document.getElementById('outlookItems');
+  gaugeGrid.innerHTML = '';
+  container.innerHTML = '';
+
+  items.forEach((item, idx) => {
+    const row = document.createElement('div');
+    row.className = 'gauge-row';
+    row.innerHTML = `
+      <div class="gauge-label">${item.parameter}</div>
+      <div class="gauge-track"><div class="gauge-fill ${ratingClass(item.rating)}" style="width:${ratingWidth(item.rating)}"></div></div>
+      <div class="gauge-val ${ratingClass(item.rating)}">${item.rating||'Fair'}</div>
+    `;
+    gaugeGrid.appendChild(row);
+
+    const box = document.createElement('div');
+    box.className = 'outlook-item';
+    box.innerHTML = `
+      <div class="top">
+        <div class="pname">${item.parameter}</div>
+        <select data-idx="${idx}" class="outlook-rating">
+          <option ${item.rating==='Good'?'selected':''}>Good</option>
+          <option ${item.rating==='Fair'?'selected':''}>Fair</option>
+          <option ${item.rating==='Poor'?'selected':''}>Poor</option>
+        </select>
+      </div>
+      <textarea data-idx="${idx}" class="outlook-remarks">${item.remarks||''}</textarea>
+    `;
+    container.appendChild(box);
+  });
+
+  container.querySelectorAll('.outlook-rating').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const i = +e.target.dataset.idx;
+      currentData.outlook[i].rating = e.target.value;
+      renderOutlook(currentData.outlook);
+    });
+  });
+  container.querySelectorAll('.outlook-remarks').forEach(ta => {
+    ta.addEventListener('input', e => {
+      const i = +e.target.dataset.idx;
+      currentData.outlook[i].remarks = e.target.value;
+    });
+  });
+}
+
+// ---------- collect edited data before export ----------
+function collectFormData(){
+  const d = currentData || normalizeData({});
+  SCHEMA_KEYS.forEach(k => {
+    const el = document.getElementById('f_' + k);
+    if(el) d[k] = el.value;
+  });
+  d.lossEstimates = lossEstimateRows.map(r => ({...r}));
+  d.outlookOverall = document.getElementById('f_outlookOverall').value;
+  return d;
+}
+
+document.getElementById('f_outlookOverall').addEventListener('change', () => {
+  if(currentData) currentData.outlookOverall = document.getElementById('f_outlookOverall').value;
+});
+
+// ==========================================================================
+// SESSION PERSISTENCE — survives a page refresh; the Gemini key never does.
+// ==========================================================================
+const SESSION_KEY = 'rra_session_v1';
+let saveTimer = null;
+
+function setAutosaveNote(msg){
+  const el = document.getElementById('autosaveNote');
+  if(el) el.textContent = msg || '';
+}
+
+function collectSessionSnapshot(){
+  return {
+    v: 1,
+    savedAt: Date.now(),
+    fileName: window._pdfFile ? window._pdfFile.name : (window._pdfFileName || null),
+    extractedText: extractedText,
+    formData: currentData ? collectFormData() : null,
+    lossEstimateRows: lossEstimateRows,
+    annexureImages: annexureImages,
+    preparedBy: (document.getElementById('preparedBy') || {}).value || '',
+    activeTab: getActiveTab()
+  };
+}
+
+function hasMeaningfulData(snap){
+  if(snap.extractedText && snap.extractedText.trim()) return true;
+  if(snap.annexureImages && snap.annexureImages.length) return true;
+  if((snap.preparedBy || '').trim()) return true;
+  if(snap.formData){
+    if(SCHEMA_KEYS.some(k => (snap.formData[k] || '').trim().length > 0)) return true;
+    if((snap.formData.outlook || []).some(o => (o.remarks || '').trim().length > 0 || o.rating !== 'Fair')) return true;
+  }
+  if((snap.lossEstimateRows || []).some(r => (r.label || r.pd || r.bi || r.total))) return true;
+  return false;
+}
+
+function saveSession(){
+  const snap = collectSessionSnapshot();
+  if(!hasMeaningfulData(snap)){
+    clearSavedSession();
+    return;
+  }
+  try{
+    localStorage.setItem(SESSION_KEY, JSON.stringify(snap));
+    setAutosaveNote('');
+  } catch(err){
+    // Usually a quota error caused by large annexure images — keep the form data safe at least
+    try{
+      const lite = Object.assign({}, snap, { annexureImages: [] });
+      localStorage.setItem(SESSION_KEY, JSON.stringify(lite));
+      setAutosaveNote('Form data auto-saved, but photos are too large to auto-save — export soon or they will be lost on refresh.');
+    } catch(err2){
+      setAutosaveNote('Auto-save failed (browser storage full) — export soon to avoid losing work.');
+    }
+  }
+}
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveSession, 400);
+}
+function clearSavedSession(){
+  try{ localStorage.removeItem(SESSION_KEY); } catch(err){ /* ignore */ }
+}
+
+// Any typing or control change anywhere in the workflow triggers a debounced autosave
+document.querySelector('.wrap').addEventListener('input', scheduleSave);
+document.querySelector('.wrap').addEventListener('change', scheduleSave);
+window.addEventListener('beforeunload', saveSession);
+
+function showRestoreBanner(savedAt, fileName){
+  const el = document.getElementById('restoreBanner');
+  const txt = document.getElementById('restoreBannerText');
+  const when = savedAt ? new Date(savedAt).toLocaleString() : 'earlier';
+  txt.textContent = 'Restored your previous session' + (fileName ? ' (' + fileName + ')' : '') + ' from ' + when + '.';
+  el.style.display = 'flex';
+}
+
+function restoreSession(){
+  let raw;
+  try{ raw = localStorage.getItem(SESSION_KEY); } catch(err){ return; }
+  if(!raw) return;
+  let snap;
+  try{ snap = JSON.parse(raw); } catch(err){ return; }
+  if(!snap || (!snap.formData && !snap.extractedText && !(snap.annexureImages && snap.annexureImages.length))) return;
+
+  extractedText = snap.extractedText || '';
+  window._pdfFileName = snap.fileName || null;
+  if(snap.fileName){
+    document.getElementById('fname').textContent = snap.fileName +
+      (extractedText ? ` (${extractedText.trim().length.toLocaleString()} characters — re-upload to re-analyze)` : '');
+  }
+
+  annexureImages = Array.isArray(snap.annexureImages) ? snap.annexureImages : [];
+  annexIdCounter = annexureImages.length;
+
+  if(snap.formData){
+    snap.formData.lossEstimates = Array.isArray(snap.lossEstimateRows) && snap.lossEstimateRows.length
+      ? snap.lossEstimateRows : snap.formData.lossEstimates;
+    currentData = normalizeData(snap.formData);
+    populateForm(currentData);
+    markTabReady('review');
+    markTabReady('annexure');
+    markTabReady('export');
+  } else {
+    lossEstimateRows = Array.isArray(snap.lossEstimateRows) && snap.lossEstimateRows.length
+      ? snap.lossEstimateRows : defaultLossRows();
+    renderLossTable();
+  }
+  renderAnnexGrid();
+  if(annexureImages.length) markTabReady('annexure');
+
+  const preparedByEl = document.getElementById('preparedBy');
+  if(preparedByEl) preparedByEl.value = snap.preparedBy || '';
+
+  activateTab(snap.activeTab && TAB_IDS.includes(snap.activeTab) ? snap.activeTab : (currentData ? 'review' : 'upload'));
+  showRestoreBanner(snap.savedAt, snap.fileName);
+}
+
+function startNewReview(){
+  const hasData = !!(currentData || extractedText || annexureImages.length);
+  if(hasData && !window.confirm('Start a new review? This clears the current survey, review data, and any attached photos from this browser.')){
+    return;
+  }
+
+  extractedText = '';
+  annexureImages = [];
+  annexIdCounter = 0;
+  chatHistory = [];
+  window._pdfFile = null;
+  window._pdfFileName = null;
+
+  // Re-populate from a fresh normalized object (not null) so the loss-table/outlook UI,
+  // once rendered, always has real backing data for its listeners to mutate safely.
+  currentData = normalizeData({});
+  populateForm(currentData);
+  document.getElementById('outlookBadge').style.display = 'none';
+
+  document.getElementById('preparedBy').value = '';
+  document.getElementById('fname').textContent = 'No file selected';
+  document.getElementById('analyzeStatus').textContent = '';
+  document.getElementById('analyzeStatus').className = 'status';
+  document.getElementById('exportStatus').textContent = '';
+  document.getElementById('exportStatus').className = 'status';
+  setAutosaveNote('');
+
+  renderAnnexGrid();
+  if(typeof chatMessagesEl !== 'undefined' && chatMessagesEl) chatMessagesEl.innerHTML = '';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('ready'));
+  document.getElementById('restoreBanner').style.display = 'none';
+
+  clearSavedSession();
+  refreshReady();
+  activateTab('config');
+  document.getElementById('apiKey').focus();
+}
+
+// ==========================================================================
+// ANNEXURE — multi-image add (drag/drop, browse, clipboard paste) + captions
+// ==========================================================================
+const annexDrop = document.getElementById('annexDrop');
+const annexFileInput = document.getElementById('annexFileInput');
+
+annexDrop.onclick = () => annexFileInput.click();
+['dragover'].forEach(evt => annexDrop.addEventListener(evt, e => { e.preventDefault(); annexDrop.classList.add('drag'); }));
+['dragleave','drop'].forEach(evt => annexDrop.addEventListener(evt, e => { e.preventDefault(); annexDrop.classList.remove('drag'); }));
+annexDrop.addEventListener('drop', e => {
+  const files = Array.from(e.dataTransfer.files || []).filter(f => f.type.startsWith('image/'));
+  if(files.length) addAnnexImages(files);
+});
+annexFileInput.addEventListener('change', e => {
+  const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/'));
+  if(files.length) addAnnexImages(files);
+  annexFileInput.value = '';
+});
+// Clipboard paste — works anywhere on the page, only intercepts actual image data
+document.addEventListener('paste', e => {
+  const items = e.clipboardData && e.clipboardData.items;
+  if(!items) return;
+  const files = [];
+  for(const item of items){
+    if(item.kind === 'file' && item.type && item.type.startsWith('image/')){
+      const f = item.getAsFile();
+      if(f) files.push(f);
+    }
+  }
+  if(files.length){ e.preventDefault(); addAnnexImages(files); }
+});
+
+function normalizeImageToPng(file, maxDim){
+  maxDim = maxDim || 1600;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.naturalWidth || img.width;
+        let h = img.naturalHeight || img.height;
+        if(w > maxDim || h > maxDim){
+          const scale = Math.min(maxDim / w, maxDim / h);
+          w = Math.max(1, Math.round(w * scale));
+          h = Math.max(1, Math.round(h * scale));
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve({ dataUrl: canvas.toDataURL('image/png'), width: w, height: h });
+      };
+      img.onerror = () => reject(new Error('Could not read image'));
+      img.src = reader.result;
+    };
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function addAnnexImages(files){
+  for(const f of files){
+    try{
+      const norm = await normalizeImageToPng(f);
+      const defaultTitle = f.name ? f.name.replace(/\.[a-z0-9]+$/i,'').replace(/[_-]+/g,' ') : '';
+      annexureImages.push({
+        id: 'img' + (++annexIdCounter),
+        dataUrl: norm.dataUrl,
+        width: norm.width,
+        height: norm.height,
+        title: defaultTitle
+      });
+    } catch(err){
+      console.error('Could not add image:', err);
+    }
+  }
+  renderAnnexGrid();
+  markTabReady('annexure');
+  scheduleSave();
+}
+
+function toRoman(num){
+  const map = [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+  let res = '';
+  for(const [v,s] of map){ while(num >= v){ res += s; num -= v; } }
+  return res || 'I';
+}
+
+function renderAnnexGrid(){
+  const grid = document.getElementById('annexGrid');
+  const badge = document.getElementById('annexCountBadge');
+  const hint = document.getElementById('annexHint');
+  grid.innerHTML = '';
+  hint.textContent = annexureImages.length ? (annexureImages.length + ' image(s) added') : 'No images added yet';
+  badge.style.display = annexureImages.length ? 'inline-flex' : 'none';
+  badge.textContent = annexureImages.length + ' image' + (annexureImages.length === 1 ? '' : 's');
+
+  annexureImages.forEach((img, idx) => {
+    const card = document.createElement('div');
+    card.className = 'annex-item';
+    const safeTitle = (img.title || '').replace(/"/g,'&quot;');
+    card.innerHTML = `
+      <div class="annex-thumb"><img src="${img.dataUrl}" alt=""></div>
+      <div class="annex-meta">
+        <span class="annex-tag">Annexure ${toRoman(idx+1)}</span>
+        <input type="text" class="annex-title" data-idx="${idx}" placeholder="e.g. Site layout plan" value="${safeTitle}">
+        <div class="annex-actions">
+          <button type="button" class="mini" data-act="up" data-idx="${idx}" title="Move up">↑</button>
+          <button type="button" class="mini" data-act="down" data-idx="${idx}" title="Move down">↓</button>
+          <button type="button" class="mini danger" data-act="remove" data-idx="${idx}" title="Remove">✕</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  grid.querySelectorAll('.annex-title').forEach(inp => {
+    inp.addEventListener('input', e => {
+      annexureImages[+e.target.dataset.idx].title = e.target.value;
+    });
+  });
+  grid.querySelectorAll('.mini').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = +e.currentTarget.dataset.idx;
+      const act = e.currentTarget.dataset.act;
+      if(act === 'remove'){
+        annexureImages.splice(idx, 1);
+      } else if(act === 'up' && idx > 0){
+        [annexureImages[idx-1], annexureImages[idx]] = [annexureImages[idx], annexureImages[idx-1]];
+      } else if(act === 'down' && idx < annexureImages.length - 1){
+        [annexureImages[idx+1], annexureImages[idx]] = [annexureImages[idx], annexureImages[idx+1]];
+      }
+      renderAnnexGrid();
+      scheduleSave();
+    });
+  });
+}
+
+// ---------- DOCX generation (minimal OOXML built with JSZip) ----------
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+}
+function pPlain(text, opts){
+  opts = opts || {};
+  const bold = opts.bold ? '<w:b/>' : '';
+  const sz = opts.size ? `<w:sz w:val="${opts.size}"/><w:szCs w:val="${opts.size}"/>` : '';
+  const rPr = (bold||sz) ? `<w:rPr>${bold}${sz}</w:rPr>` : '';
+  const jc = opts.center ? '<w:jc w:val="center"/>' : '';
+  const spacing = opts.spacingAfter != null ? ` w:after="${opts.spacingAfter}"` : ' w:after="120"';
+  return `<w:p><w:pPr><w:spacing${spacing}/>${jc}</w:pPr><w:r>${rPr}<w:t xml:space="preserve">${esc(text)}</w:t></w:r></w:p>`;
+}
+function pHeading(text){
+  return `<w:p><w:pPr><w:spacing w:before="240" w:after="120"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="26"/><w:szCs w:val="26"/><w:u w:val="single"/></w:rPr><w:t xml:space="preserve">${esc(text)}</w:t></w:r></w:p>`;
+}
+function pLabelValue(label, value){
+  return `<w:p><w:pPr><w:spacing w:after="120"/></w:pPr><w:r><w:rPr><w:b/></w:rPr><w:t xml:space="preserve">${esc(label)} </w:t></w:r><w:r><w:t xml:space="preserve">${esc(value)}</w:t></w:r></w:p>`;
+}
+function pBullet(label, value){
+  return `<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr><w:spacing w:after="100"/></w:pPr><w:r><w:rPr><w:b/></w:rPr><w:t xml:space="preserve">${esc(label)}: </w:t></w:r><w:r><w:t xml:space="preserve">${esc(value)}</w:t></w:r></w:p>`;
+}
+function pPageBreak(){
+  return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
+}
+function tcell(text, opts){
+  opts = opts || {};
+  const w = opts.w || 2200;
+  const shade = opts.shade ? `<w:shd w:val="clear" w:color="auto" w:fill="${opts.shade}"/>` : '';
+  const bold = opts.bold ? '<w:b/>' : '';
+  return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${shade}</w:tcPr><w:p><w:r><w:rPr>${bold}</w:rPr><w:t xml:space="preserve">${esc(text)}</w:t></w:r></w:p></w:tc>`;
+}
+function tableXml(headerCells, rows, colWidths){
+  const grid = colWidths.map(w => `<w:gridCol w:w="${w}"/>`).join('');
+  const headerRow = `<w:tr>${headerCells.map((h,i)=>tcell(h,{w:colWidths[i],shade:'E8E2D1',bold:true})).join('')}</w:tr>`;
+  const bodyRows = rows.map(r => `<w:tr>${r.map((c,i)=>tcell(c,{w:colWidths[i]})).join('')}</w:tr>`).join('');
+  return `<w:tbl><w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="0" w:type="auto"/><w:tblBorders><w:top w:val="single" w:sz="4" w:color="D8D3C4"/><w:left w:val="single" w:sz="4" w:color="D8D3C4"/><w:bottom w:val="single" w:sz="4" w:color="D8D3C4"/><w:right w:val="single" w:sz="4" w:color="D8D3C4"/><w:insideH w:val="single" w:sz="4" w:color="D8D3C4"/><w:insideV w:val="single" w:sz="4" w:color="D8D3C4"/></w:tblBorders></w:tblPr><w:tblGrid>${grid}</w:tblGrid>${headerRow}${bodyRows}</w:tbl>`;
+}
+
+// image px -> EMU, capped to the printable page width
+const CONTENT_WIDTH_EMU = (12240 - 1080 - 1080) * 635; // twips * 635 EMU/twip
+function computeImageExtent(pxW, pxH){
+  let wEmu = pxW * 9525; // 96dpi px -> EMU
+  let hEmu = pxH * 9525;
+  if(wEmu > CONTENT_WIDTH_EMU){
+    const scale = CONTENT_WIDTH_EMU / wEmu;
+    wEmu = Math.round(wEmu * scale);
+    hEmu = Math.round(hEmu * scale);
+  }
+  return { wEmu, hEmu };
+}
+function pImageParagraph(rId, wEmu, hEmu, docPrId, name){
+  return `<w:p><w:pPr><w:spacing w:after="240"/><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${wEmu}" cy="${hEmu}"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:docPr id="${docPrId}" name="${esc(name)}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="${docPrId}" name="${esc(name)}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${rId}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${wEmu}" cy="${hEmu}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
+}
+function dataUrlToUint8Array(dataUrl){
+  const base64 = dataUrl.split(',')[1] || '';
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+async function buildDocx(d, preparedBy, images){
+  images = images || [];
+  const zip = new JSZip();
+
+  zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Default Extension="png" ContentType="image/png"/>
+<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>
+<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+</Types>`);
+
+  zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+
+  let rels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>
+<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`;
+  const imageRelIds = [];
+  images.forEach((img, i) => {
+    const rId = 'rId' + (3 + i);
+    imageRelIds.push(rId);
+    rels += `\n<Relationship Id="${rId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image${i+1}.png"/>`;
+  });
+  rels += `\n</Relationships>`;
+  zip.file('word/_rels/document.xml.rels', rels);
+
+  images.forEach((img, i) => {
+    zip.file(`word/media/image${i+1}.png`, dataUrlToUint8Array(img.dataUrl));
+  });
+
+  zip.file('word/numbering.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:abstractNum w:abstractNumId="0">
+<w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="•"/><w:lvlJc w:val="left"/>
+<w:pPr><w:ind w:left="432" w:hanging="288"/></w:pPr></w:lvl>
+</w:abstractNum>
+<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num>
+</w:numbering>`);
+
+  zip.file('word/styles.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/><w:sz w:val="22"/></w:rPr></w:rPrDefault></w:docDefaults>
+<w:style w:type="table" w:styleId="TableGrid"><w:name w:val="Table Grid"/><w:tblPr><w:tblBorders>
+<w:top w:val="single" w:sz="4" w:color="auto"/><w:left w:val="single" w:sz="4" w:color="auto"/>
+<w:bottom w:val="single" w:sz="4" w:color="auto"/><w:right w:val="single" w:sz="4" w:color="auto"/>
+<w:insideH w:val="single" w:sz="4" w:color="auto"/><w:insideV w:val="single" w:sz="4" w:color="auto"/>
+</w:tblBorders></w:tblPr></w:style>
+</w:styles>`);
+
+  const lossRows = (d.lossEstimates || []).map(r => [r.label || '', r.pd || '', r.bi || '', r.total || '']);
+  const outlookRows = d.outlook.map(o => [o.parameter, o.rating, o.remarks]);
+
+  let body = []
+    .concat(pHeading('Review Comments – ' + (d.insured || '')))
+    .concat(pPlain('Prepared by – ' + (preparedBy || '') + ' on ' + new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})))
+    .concat(pLabelValue('Original Insured:', d.insured))
+    .concat(pLabelValue('Occupancy:', d.occupancy))
+    .concat(pLabelValue('Locations:', d.locations))
+    .concat(pLabelValue('Report Date:', d.reportDate))
+    .concat(pPlain('Brief of Risk:', {bold:true}))
+    .concat(pBullet('Started in Year', d.startedYear))
+    .concat(pBullet('Number of Units and Capacity', d.unitsCapacity))
+    .concat(pBullet('Main Hazards', d.mainHazards))
+    .concat(pBullet('Process details', d.processDetails))
+    .concat(pLabelValue('Layout –', d.layout))
+    .concat(pLabelValue('Construction –', d.construction))
+    .concat(pPlain('Fire Protection system -', {bold:true}))
+    .concat(pBullet('Fire Hydrants System', d.fireHydrants))
+    .concat(pBullet('Sprinkler System', d.sprinklerSystem))
+    .concat(pBullet('Special Extinguishing Systems', d.specialExtinguishing))
+    .concat(pBullet('Fire Drills, In-House Fire Team, and Staff Training', d.fireDrills))
+    .concat(pBullet('Heat and Smoke Detection Systems', d.detectionSystems))
+    .concat(pBullet('Issues Identified in Fire Protection System', d.fireProtectionIssues))
+    .concat(pBullet('Nearest Public Fire Brigade', d.nearestFireBrigade))
+    .concat(pPlain('Maintenance and Inspection –', {bold:true}))
+    .concat(pBullet('Maintenance', d.maintenance))
+    .concat(pBullet('Inspection', d.inspection))
+    .concat(pBullet('Spares Provisioning', d.sparesProvisioning))
+    .concat(pBullet('Issues', d.maintenanceIssues))
+    .concat(pBullet('Preventive Measures', d.preventiveMeasures))
+    .concat(pLabelValue('NAT CAT exposure –', d.natCat))
+    .concat(pLabelValue('Loss History –', d.lossHistory))
+    .concat(pLabelValue('Recommendations status –', d.recommendationsStatus))
+    .concat(pPlain('Loss estimates – as below', {bold:true}))
+    .concat(pLabelValue('PML Scenario assumed –', d.pmlScenario))
+    .concat(lossRows.length
+      ? [tableXml(
+          ['', 'Property Damage', 'Business Interruption', 'Total Loss estimates'],
+          lossRows,
+          [2600, 2300, 2400, 2400]
+        )]
+      : [pPlain('No loss estimate rows provided.', {})])
+    .concat(['<w:p><w:pPr><w:spacing w:before="240"/></w:pPr></w:p>'])
+    .concat(pHeading('Outlook Comments'))
+    .concat(pPlain('Outlook for the risk “' + (d.outlookOverall || 'Fair') + '” on following:'))
+    .concat([tableXml(
+        ['Parameter','Rating','Remarks'],
+        outlookRows,
+        [3000, 1400, 4700]
+      )]);
+
+  if(images.length){
+    body = body.concat([pPageBreak()]).concat(pHeading('Annexure'));
+    images.forEach((img, i) => {
+      const rId = imageRelIds[i];
+      const { wEmu, hEmu } = computeImageExtent(img.width, img.height);
+      const label = 'Annexure ' + toRoman(i+1) + (img.title ? ' – ' + img.title : '');
+      body = body
+        .concat([pPlain(label, {bold:true, size:24, spacingAfter:120})])
+        .concat([pImageParagraph(rId, wEmu, hEmu, 100+i, img.title || ('Image ' + (i+1)))]);
+    });
+  }
+
+  const bodyXml = body.join('');
+
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<w:body>
+${bodyXml}
+<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1080" w:right="1080" w:bottom="1080" w:left="1080" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>
+</w:body>
+</w:document>`;
+
+  zip.file('word/document.xml', documentXml);
+
+  return await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+}
+
+document.getElementById('exportBtn').onclick = async () => {
+  const status = document.getElementById('exportStatus');
+  try{
+    status.className = 'status'; status.innerHTML = '<span class="spinner"></span> Building document…';
+    const d = collectFormData();
+    const preparedBy = document.getElementById('preparedBy').value || '';
+    const blob = await buildDocx(d, preparedBy, annexureImages);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const safeName = (d.insured || 'Risk_Review').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'_');
+    a.href = url;
+    a.download = `Review_Comments_${safeName || 'Risk_Review'}.docx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    status.className = 'status ok'; status.textContent = 'Downloaded.';
+  } catch(err){
+    console.error(err);
+    status.className = 'status err'; status.textContent = err.message || String(err);
+  }
+};
+
+// ==========================================================================
+// PDF CHAT — scratchpad Q&A over the extracted survey text.
+// Deliberately isolated: buildDocx() never reads chatHistory, so nothing
+// typed here can end up in the exported .docx.
+// ==========================================================================
+let chatHistory = []; // {role:'user'|'model', text}
+
+const chatFab = document.getElementById('chatFab');
+const chatPanel = document.getElementById('chatPanel');
+const chatBadge = document.getElementById('chatBadge');
+const chatMessagesEl = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const chatSendBtn = document.getElementById('chatSend');
+const chatCloseBtn = document.getElementById('chatClose');
+const chatClearBtn = document.getElementById('chatClear');
+
+chatFab.onclick = () => {
+  chatPanel.classList.toggle('open');
+  if(chatPanel.classList.contains('open')){
+    chatBadge.style.display = 'none';
+    if(!chatHistory.length) seedChatWelcome();
+    chatInput.focus();
+    chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+  }
+};
+chatCloseBtn.onclick = () => chatPanel.classList.remove('open');
+chatClearBtn.onclick = () => {
+  chatHistory = [];
+  chatMessagesEl.innerHTML = '';
+  seedChatWelcome();
+};
+
+function resetChatForNewFile(){
+  chatHistory = [];
+  if(chatMessagesEl) chatMessagesEl.innerHTML = '';
+}
+function notifyChatPdfReady(){
+  if(!chatPanel.classList.contains('open')){
+    chatBadge.textContent = 'PDF ready';
+    chatBadge.style.display = 'inline-flex';
+  }
+}
+
+function seedChatWelcome(){
+  const msg = extractedText
+    ? "Ask me anything about the uploaded survey — I'll answer from the extracted PDF text only. This conversation stays in the app and is never included in the exported Word document."
+    : "Upload a survey PDF first (Step 02) — once its text is extracted I can answer questions about it here.";
+  appendChatMessage('system', msg);
+}
+
+function appendChatMessage(role, text){
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + role;
+  div.textContent = text;
+  chatMessagesEl.appendChild(div);
+  chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+  return div;
+}
+
+function setChatBusy(busy){
+  chatSendBtn.disabled = busy;
+  chatInput.disabled = busy;
+}
+
+function autoGrowChatInput(){
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 80) + 'px';
+}
+chatInput.addEventListener('input', autoGrowChatInput);
+chatInput.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendChatQuestion();
+  }
+});
+chatSendBtn.onclick = sendChatQuestion;
+
+async function callGeminiChat(apiKey, model, surveyText, history){
+  const sysPrompt = `You are helping a property risk engineer double-check specific parameters in a facility risk survey report before finalizing an underwriting review. Answer ONLY using the survey text provided below — do not invent facts. If the survey doesn't state something, say so plainly and suggest what to verify with the client. Keep answers concise and specific (cite figures and section context where useful). This conversation is a scratchpad for the reviewer and is never part of any exported document.
+
+--- SURVEY TEXT START ---
+${surveyText.slice(0, 900000)}
+--- SURVEY TEXT END ---`;
+
+  const contents = [
+    { role: 'user', parts: [{ text: sysPrompt }] },
+    { role: 'model', parts: [{ text: 'Understood — ask your questions about this survey and I will answer from its text only.' }] }
+  ];
+  history.forEach(m => {
+    contents.push({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.text }] });
+  });
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents, generationConfig: { temperature: 0.2 } })
+  });
+  if(!res.ok){
+    const errText = await res.text();
+    throw new Error(`Gemini API error ${res.status}: ${errText.slice(0,300)}`);
+  }
+  const json = await res.json();
+  const cand = json.candidates && json.candidates[0];
+  if(!cand || !cand.content || !cand.content.parts || !cand.content.parts[0]){
+    throw new Error('Gemini returned no answer — try again.');
+  }
+  return cand.content.parts.map(p => p.text || '').join('').trim();
+}
+
+async function sendChatQuestion(){
+  const question = chatInput.value.trim();
+  if(!question) return;
+  if(!extractedText){
+    appendChatMessage('system', 'Upload a survey PDF first (Step 02) before asking questions.');
+    return;
+  }
+  const apiKey = apiKeyEl.value.trim();
+  if(apiKey.length < 10){
+    appendChatMessage('system', 'Add your Gemini API key in Step 01 first.');
+    return;
+  }
+  appendChatMessage('user', question);
+  chatHistory.push({role:'user', text: question});
+  chatInput.value = '';
+  autoGrowChatInput();
+  setChatBusy(true);
+
+  const typingEl = document.createElement('div');
+  typingEl.className = 'chat-typing';
+  typingEl.innerHTML = '<span></span><span></span><span></span>';
+  chatMessagesEl.appendChild(typingEl);
+  chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+
+  try{
+    const answer = await callGeminiChat(apiKey, modelEl.value, extractedText, chatHistory);
+    typingEl.remove();
+    appendChatMessage('model', answer);
+    chatHistory.push({role:'model', text: answer});
+  } catch(err){
+    typingEl.remove();
+    appendChatMessage('system', 'Error: ' + (err.message || String(err)));
+    chatHistory.pop(); // drop the unanswered question so a retry doesn't duplicate it
+  } finally {
+    setChatBusy(false);
+    chatInput.focus();
+  }
+}
+
+// ---------- restore any saved session now that everything above is wired up ----------
+restoreSession();
+</script>
+</body>
+</html>
