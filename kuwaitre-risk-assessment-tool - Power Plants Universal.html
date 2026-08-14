@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Risk Assessment Tool — Power Plant Desk Top Assessment</title>
+<style>
+:root{
+  --ink:#0B1220; --navy:#16243B; --slate:#2E4360; --mist:#DCE4EF; --mist-2:#EEF3F9;
+  --paper:#FFFFFF; --line:#C9D4E4; --line-soft:#E3EAF3;
+  --accent:#2F6DB5; --accent-dk:#1E4E85; --muted:#5B6B82;
+  --poor-fg:#A32B23; --poor-bg:#FBE7E5;
+  --fair-fg:#8C6212; --fair-bg:#FBF1D6;
+  --good-fg:#22694A; --good-bg:#E1F1E8;
+  --vgood-fg:#12513A; --vgood-bg:#CFE9DC;
+  --shadow:0 1px 2px rgba(11,18,32,.06), 0 8px 24px rgba(11,18,32,.06);
+  --r:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Inter","Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;
+  background:var(--mist-2); color:var(--ink); font-size:14.5px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent);text-decoration:none}
+
+/* ---------- top nav (matches kuwaitre site chrome) ---------- */
+.nav{background:var(--ink);color:#fff;position:sticky;top:0;z-index:60}
+.nav-in{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:28px;padding:0 22px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;background:#fff;padding:6px 12px;border-radius:4px}
+.brand svg{display:block}
+.brand-txt{font-weight:800;line-height:1.05;color:var(--ink);font-size:15px;letter-spacing:-.2px}
+.nav-links{display:flex;gap:26px;margin-left:auto;align-items:center}
+.nav-links a{color:#E7ECF3;font-size:14px;font-weight:500;opacity:.85}
+.nav-links a:hover{opacity:1}
+.nav-links a.active{color:#fff;opacity:1;font-weight:600;position:relative}
+.nav-links a.active:after{content:"";position:absolute;left:0;right:0;bottom:-22px;height:3px;background:var(--accent)}
+@media(max-width:900px){.nav-links{display:none}}
+
+/* ---------- hero ---------- */
+.hero{background:var(--mist);border-bottom:1px solid var(--line)}
+.hero-in{max-width:1400px;margin:0 auto;padding:34px 22px 30px}
+.eyebrow{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);font-weight:600}
+.hero h1{margin:10px 0 8px;font-size:40px;line-height:1.06;letter-spacing:-1.4px;font-weight:800}
+.hero p{margin:0;max-width:900px;color:#31415A;font-size:15px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.pill{background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-size:12.5px;color:var(--slate);font-weight:600}
+@media(max-width:700px){.hero h1{font-size:28px;letter-spacing:-.6px}}
+
+/* ---------- tab strip ---------- */
+.tabs{background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:64px;z-index:50}
+.tabs-in{max-width:1400px;margin:0 auto;display:flex;gap:2px;padding:0 14px;overflow-x:auto;scrollbar-width:thin}
+.tab{flex:0 0 auto;border:0;background:transparent;padding:13px 14px;cursor:pointer;font-size:13.5px;font-weight:600;
+  color:var(--muted);border-bottom:3px solid transparent;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.tab:hover{color:var(--ink);background:var(--mist-2)}
+.tab.on{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .idx{font-size:11px;font-weight:700;color:#fff;background:var(--line);color:var(--slate);
+  width:20px;height:20px;border-radius:5px;display:grid;place-items:center}
+.tab.on .idx{background:var(--accent);color:#fff}
+.tab .dot{width:7px;height:7px;border-radius:50%;background:var(--good-fg)}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1400px;margin:0 auto;padding:22px 22px 120px}
+.card{background:var(--paper);border:1px solid var(--line-soft);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:18px}
+.card-h{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line-soft);flex-wrap:wrap}
+.card-h h2{margin:0;font-size:16px;letter-spacing:-.3px}
+.card-h .sub{color:var(--muted);font-size:12.5px}
+.card-b{padding:16px 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:840px){.grid2,.grid3{grid-template-columns:1fr}}
+.spacer{flex:1}
+
+/* ---------- controls ---------- */
+label.lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--slate);margin-bottom:5px}
+.inp,select.inp,textarea.inp{width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 11px;outline:none;transition:border .12s,box-shadow .12s}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,109,181,.15)}
+textarea.inp{resize:vertical;min-height:64px;line-height:1.55}
+.hint{font-size:12px;color:var(--muted);margin-top:5px}
+.btn{border:1px solid var(--line);background:#fff;color:var(--slate);border-radius:8px;padding:8px 14px;font-size:13.5px;
+  font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.12s}
+.btn:hover{background:var(--mist-2);border-color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.pri{background:var(--slate);border-color:var(--slate);color:#fff}
+.btn.pri:hover{background:var(--navy);border-color:var(--navy)}
+.btn.acc{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.acc:hover{background:var(--accent-dk);border-color:var(--accent-dk)}
+.btn.sm{padding:5px 9px;font-size:12px;border-radius:7px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--mist-2)}
+.btn.danger{color:var(--poor-fg);border-color:#EBC9C5}
+.btn.danger:hover{background:var(--poor-bg)}
+.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+
+/* ---------- field rows ---------- */
+.field{border:1px solid var(--line-soft);border-radius:10px;margin-bottom:12px;overflow:hidden;background:#fff}
+.field.busy{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,109,181,.10)}
+.field.err{border-color:#E3B4AF}
+.f-top{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;background:#FBFCFE;border-bottom:1px solid var(--line-soft)}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;font-weight:700;color:var(--accent-dk);
+  background:#EAF1FA;border:1px solid #D3E2F3;border-radius:5px;padding:2px 6px;white-space:nowrap;margin-top:1px}
+.f-name{font-weight:650;font-size:14px;letter-spacing:-.15px}
+.f-tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+  border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+.f-tools{margin-left:auto;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.f-body{padding:12px 13px}
+.f-split{display:grid;grid-template-columns:150px 1fr;gap:12px}
+@media(max-width:700px){.f-split{grid-template-columns:1fr}}
+.prompt-box{margin-top:9px;background:#F7FAFD;border:1px dashed var(--line);border-radius:8px;padding:10px}
+.prompt-box textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:12.5px;min-height:66px;resize:vertical}
+
+/* rating select colouring */
+select.rate{font-weight:700;text-align:center}
+select.rate[data-v="poor"]{background:var(--poor-bg);color:var(--poor-fg);border-color:#E9C4C0}
+select.rate[data-v="fair"]{background:var(--fair-bg);color:var(--fair-fg);border-color:#E8D5A2}
+select.rate[data-v="good"]{background:var(--good-bg);color:var(--good-fg);border-color:#BEDDCB}
+select.rate[data-v="very good"]{background:var(--vgood-bg);color:var(--vgood-fg);border-color:#A8D6C1}
+
+/* ---------- images ---------- */
+.thumbs{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.thumb{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.thumb img{display:block;max-height:118px;max-width:220px}
+.thumb .x{position:absolute;top:4px;right:4px;background:rgba(11,18,32,.72);color:#fff;border:0;border-radius:5px;
+  width:22px;height:22px;cursor:pointer;font-size:13px;line-height:1}
+.dropzone{border:2px dashed var(--line);border-radius:10px;padding:26px;text-align:center;color:var(--muted);background:#FBFCFE;cursor:pointer}
+.dropzone.hot{border-color:var(--accent);background:#EFF5FC;color:var(--accent-dk)}
+
+/* ---------- misc ---------- */
+.bar{height:6px;background:var(--line-soft);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.badge{font-size:11.5px;font-weight:700;border-radius:6px;padding:2px 8px;border:1px solid}
+.badge.ok{color:var(--good-fg);background:var(--good-bg);border-color:#BEDDCB}
+.badge.wait{color:var(--fair-fg);background:var(--fair-bg);border-color:#E8D5A2}
+.badge.bad{color:var(--poor-fg);background:var(--poor-bg);border-color:#E9C4C0}
+.badge.neutral{color:var(--slate);background:var(--mist-2);border-color:var(--line)}
+.doclist{display:flex;flex-direction:column;gap:8px}
+.docitem{display:flex;align-items:center;gap:10px;border:1px solid var(--line-soft);border-radius:8px;padding:9px 11px;background:#FBFCFE}
+.note{background:#F7FAFD;border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 8px 8px 0;font-size:13px;color:#33455F}
+.warn{background:var(--fair-bg);border-left:3px solid var(--fair-fg);padding:10px 12px;border-radius:0 8px 8px 0;font-size:13px;color:#6B4C10}
+.err-box{background:var(--poor-bg);border-left:3px solid var(--poor-fg);padding:10px 12px;border-radius:0 8px 8px 0;font-size:13px;color:#7C2118}
+table.mini{width:100%;border-collapse:collapse;font-size:13px}
+table.mini th,table.mini td{border-bottom:1px solid var(--line-soft);padding:7px 9px;text-align:left;vertical-align:top}
+table.mini th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--slate)}
+
+/* ---------- footer nav ---------- */
+.footbar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.97);border-top:1px solid var(--line);
+  backdrop-filter:blur(8px);z-index:55}
+.footbar-in{max-width:1400px;margin:0 auto;padding:11px 22px;display:flex;align-items:center;gap:10px}
+.step-txt{font-size:12.5px;color:var(--muted);font-weight:600}
+
+/* ---------- chat ---------- */
+.chat-fab{position:fixed;right:22px;bottom:78px;z-index:70;background:var(--accent);color:#fff;border:0;border-radius:999px;
+  padding:12px 18px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(30,78,133,.35);display:flex;gap:8px;align-items:center}
+.chat-panel{position:fixed;right:22px;bottom:78px;width:410px;max-width:calc(100vw - 28px);height:min(620px,calc(100vh - 170px));
+  background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(11,18,32,.24);z-index:71;display:flex;flex-direction:column;overflow:hidden}
+.chat-h{background:var(--ink);color:#fff;padding:11px 14px;display:flex;align-items:center;gap:9px}
+.chat-h b{font-size:14px}
+.chat-body{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:11px;background:var(--mist-2)}
+.msg{max-width:88%;padding:9px 12px;border-radius:12px;font-size:13.5px;white-space:pre-wrap;word-wrap:break-word}
+.msg.u{align-self:flex-end;background:var(--slate);color:#fff;border-bottom-right-radius:3px}
+.msg.a{align-self:flex-start;background:#fff;border:1px solid var(--line-soft);border-bottom-left-radius:3px}
+.chat-f{border-top:1px solid var(--line-soft);padding:10px;display:flex;gap:8px;background:#fff}
+.chat-f textarea{flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 10px;resize:none;height:44px;font-size:13.5px}
+
+/* ---------- toast ---------- */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:86px;background:var(--ink);color:#fff;
+  padding:10px 18px;border-radius:10px;z-index:90;font-size:13.5px;box-shadow:0 10px 30px rgba(11,18,32,.3)}
+.spin{width:14px;height:14px;border:2px solid rgba(47,109,181,.25);border-top-color:var(--accent);border-radius:50%;
+  display:inline-block;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media print{.nav,.tabs,.footbar,.chat-fab,.chat-panel,.f-tools,.btn{display:none!important}
+  .card{break-inside:avoid;box-shadow:none}body{background:#fff}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+</script>
+<script type="text/babel" data-presets="react">
+/* ============================================================
+   KUWAIT RE — POWER PLANT RISK REVIEW / DTA ANALYSIS TOOL
+   Single file. React 18 + Babel. Gemini API (user key, client side).
+
+   Field list below mirrors Draft_Power_DTA_blank_2025_Universal.xlsx
+   row for row (sheet "DTA") — one universal sheet used for every
+   plant type. Rows tagged flex:true are the six technology-specific
+   rows (Gas Turbines / Steam Turbines / HRSG / Hot Zone & Cold Zone /
+   Dam specifications / Hydro Turbines) plus the two Machinery
+   Breakdown rows (Dam / Hydro turbines) that only apply to some
+   plant types — for the rest, Gemini is instructed to answer
+   "Not applicable". Every other row applies to every plant type,
+   so the field list itself never changes with the plant selector;
+   only the wording of the answers does.
+   ============================================================ */
+
+const RATINGS = ["", "poor", "fair", "good", "very good"];
+
+const PLANTS = [
+  { id: "gas",     label: "Gas turbine / Combined cycle" },
+  { id: "coal",    label: "Coal / Lignite thermal" },
+  { id: "hydro",   label: "Hydroelectric (dam / RoR)" },
+  { id: "nuclear", label: "Nuclear" },
+  { id: "diesel",  label: "Diesel / HFO engine" },
+  { id: "solar",   label: "Solar PV (± BESS)" },
+  { id: "wind",    label: "Wind farm" },
+  { id: "other",   label: "Other / mixed generation" },
+];
+
+/* kind: "text" | "rated" | "pml" | "value_comment"
+   opts: { flex:true } marks a technology-specific row              */
+const F = (code, label, kind, prompt, opts) => ({ code, label, kind, prompt, ...(opts || {}) });
+
+/* ---------------- General Information — rows 4-16, 21 ---------------- */
+const GEN = [
+  F("GEN-01", "Date of Assessment", "text", "Today's date. This is normally set by the reviewer, not read from the report."),
+  F("GEN-02", "Name of the Account", "text", "Name of the insured / plant with installed capacity in MW and unit configuration. Max 20 words."),
+  F("GEN-03", "Location", "text", "Full site address — town, district, state, country — plus latitude/longitude of the main blocks if stated. Max 50 words."),
+  F("GEN-04", "Nature of Occupancy", "text", "Type of generation (e.g. 2x330 MW coal fired thermal, combined cycle gas, run-of-river hydro), fuel used and configuration. Max 20 words."),
+  F("GEN-05", "Number of Locations", "text", "From the executive summary: how many plants/sites are covered under the policy. Strictly a single number."),
+  F("GEN-06", "PD Sum Insured", "text", "Property damage sum insured with currency, in millions. Blank if not stated."),
+  F("GEN-07", "BI Sum Insured", "text", "Business interruption sum insured with currency, in millions. Blank if not stated."),
+  F("GEN-08", "BI Indemnity Period", "text", "Indemnity period in months. Number + 'months' only."),
+  F("GEN-09", "Total Sum Insured", "text", "Total sum insured (PD + BI) with currency, in millions."),
+  F("GEN-10", "Report Made by", "text", "Name of the surveyor / risk engineering firm that produced the report, plus office location. Max 20 words."),
+  F("GEN-11", "Date of the Report", "text", "Date of survey and date of report in DD/MM/YYYY. If both are given, state both."),
+  F("GEN-12", "Loss Scenario", "text", "The top three loss scenarios described in the report, most severe first, each with the affected asset. Max 80 words."),
+  F("GEN-13", "Probability", "text", "Rate the likelihood of the main loss scenario as High, Moderate or Low, with a five word justification."),
+  F("GEN-14", "DTA prepared by", "text", "Name of the Kuwait Re risk engineer — filled by the reviewer, not from the report."),
+];
+
+/* ---------------- PML — rows 17-20 ---------------- */
+const PML = [
+  F("PML-01", "PD PML", "pml", "Property damage loss estimate (PML/MFL) exactly as stated in the report, with currency and units. Number and currency only."),
+  F("PML-02", "BI PML", "pml", "Business interruption loss estimate as stated in the report, with currency and units. Number and currency only."),
+  F("PML-03", "Total PML", "pml", "Total loss estimate (PD + BI) as stated in the report, with currency and units."),
+];
+
+/* ---------------- PD Risk Assessment — rows 24-47 ---------------- */
+const PD = [
+  F("PD-01", "Layout", "rated",
+    "Layout in 30 words: block arrangement and the actual separation distances between power block, transformer yard, fuel storage, stores and admin. Name the distances."),
+  F("PD-02", "Construction", "rated",
+    "Construction in 30 words: structural frame, walls, roof and floors of the main blocks, and combustibility of each. Comment specifically on combustible cladding/insulation if mentioned."),
+  F("PD-03", "Housekeeping", "rated",
+    "Housekeeping in 30 words. Name any specific issue reported — oil leaks, cable trench debris, temporary storage, coal/ash dust accumulation."),
+  F("PD-04", "Primary Fuel Storage", "rated",
+    "Primary fuel storage/handling in 60 words, matched to the plant type: for coal — stockyard quantity, days of cover, stacking height, spontaneous-combustion controls and conveyor/transfer-point protection; for gas — supply pressure, gas receiving/metering skid, gas detection and ESD; for oil/diesel — tank capacity, bunding and unloading; for hydro, solar or wind, answer 'Not applicable — no primary fuel'."),
+  F("PD-05", "Secondary Fuel Storage", "rated",
+    "Secondary/backup fuel (HSD, LDO, HFO) in 40 words: quantity, tank location and separation, bunding and the fire protection provided. Answer 'Not applicable' if the plant keeps no backup fuel."),
+  F("PD-06", "Other Flammable Gases", "rated",
+    "Other flammable gases and liquids in 40 words: hydrogen for generator cooling, bulk lube and transformer oil storage, cylinder storage practice and separation."),
+  F("PD-07", "Arson and Neighbouring Risks", "rated",
+    "Arson and neighbouring exposure in 30 words: perimeter exposure, adjacent occupancies, civil unrest or terrorism exposure noted in the report."),
+  F("PD-08", "Gas Turbines", "rated",
+    "For a gas turbine or combined cycle plant, in 60 words: number of GT units, OEM and frame/model, ISO rating, enclosure type, fire and gas detection and suppression inside the enclosure (CO2 / water mist / inergen), and ventilation. Answer 'Not applicable' for any plant with no gas turbine.",
+    { flex: true }),
+  F("PD-09", "Steam Turbines", "rated",
+    "Steam turbine(s) in 50 words: number of units, OEM, rating, condenser type, lube oil and hydraulic fluid system, hydrogen cooling if any, and the fire protection over the turbine deck. Answer 'Not applicable' for plants with no steam turbine (hydro, solar, wind).",
+    { flex: true }),
+  F("PD-10", "HRSG", "rated",
+    "For a combined cycle plant, describe the HRSG in 60 words: type (horizontal/vertical, pressure levels), duct/supplementary firing, casing and insulation, stack/bypass arrangement, and any purge or gas-accumulation exposure. For a conventional coal, oil or gas-fired steam plant with no HRSG, describe the boiler instead in 60 words: type and parameters, firing system, ignition/support fuel, and hot-surface protection. Answer 'Not applicable' for hydro, nuclear, solar, wind or diesel plants.",
+    { flex: true }),
+  F("PD-11", "Hot Zone & Cold Zone Specifications", "rated",
+    "For a nuclear plant only, in 70 words: hot zone (radiological controlled area) fire area separation and barriers, ventilation and filtration, combustible loading control, cable routing separation; and cold zone (conventional island) turbine, generator and transformer fire protection. Answer 'Not applicable' for any non-nuclear plant.",
+    { flex: true }),
+  F("PD-12", "Dam Specifications", "rated",
+    "For a hydro plant only, in 70 words: dam type (concrete gravity, earthfill, rockfill, barrage), height, crest length, reservoir/live storage, design flood and spillway capacity, and dam safety review status. Answer 'Not applicable' for any non-hydro plant.",
+    { flex: true }),
+  F("PD-13", "Hydro Turbines", "rated",
+    "For a hydro plant only, in 60 words: number of units, type (Francis / Pelton / Kaplan / bulb), OEM, output per unit, rated head and discharge, and fire protection at the turbine floor. Answer 'Not applicable' for any non-hydro plant.",
+    { flex: true }),
+  F("PD-14", "Generators", "rated",
+    "Generators in 60 words — or grid-tie inverters for solar, WTG generators for wind: number, OEM/model, rating, cooling medium (air/hydrogen), excitation, and the fire protection provided in the generator area."),
+  F("PD-15", "Lube Oil System", "rated",
+    "Lube oil, hydraulic or gearbox oil systems in 40 words: total oil volume, tank/piping location, leak detection, drainage and the suppression provided. Answer 'Not applicable' for solar PV."),
+  F("PD-16", "Transformers", "rated",
+    "Transformers in 60 words: generator/station/unit auxiliary transformers with ratings, oil volume, separation distances or blast walls, spare transformer availability, and the protection provided (HVWS/deluge/nitrogen injection)."),
+  F("PD-17", "Electrical Rooms, Control Rooms", "rated",
+    "Electrical, control and cable rooms in 50 words: construction, cable type (FRLS or not), cable/floor penetration sealing, detection type and gas suppression provided."),
+  F("PD-18", "Hot Work Permit Systems", "rated",
+    "Hot work permit system in 30 words: permit format, authorisation levels, fire watch, and the assessment made in the survey report."),
+  F("PD-19", "Plant Security", "rated",
+    "Security in 30 words: perimeter wall/fencing, manned guarding, CCTV coverage, access control and any gaps noted."),
+  F("PD-20", "Fire Protection System", "rated",
+    "Detection and fixed protection in 80 words: detector types and coverage, hydrant network, sprinkler/deluge/HVWS/spray systems and what they protect, gaseous systems, extinguishers, and any code-compliance gaps reported."),
+  F("PD-21", "Fire Pumps and Fire Water Storage", "rated",
+    "Fire water system in 40 words: pump number, type, capacity and driver (electric/diesel/jockey), fire water storage volume and hours of autonomy, and the standard followed."),
+  F("PD-22", "Mutual Aid", "rated",
+    "Mutual aid in 30 words: nearest public fire brigade, distance and response time, and any formal mutual aid arrangement."),
+  F("PD-23", "Private Fire Brigade", "rated",
+    "In-house fire team in 50 words: dedicated fire crew size and shift coverage, fire tenders and vehicles, training and mock drill frequency, and emergency response plan status."),
+  F("PD-CON", "Conclusion", "rated",
+    "Conclusion in 80 words: one line each on construction and layout, fire protection adequacy, the single most significant fire/explosion exposure, and any high hazard area identified in process or storage."),
+];
+
+/* ---------------- BI Risk Assessment — rows 50-54 ---------------- */
+const BI = [
+  F("BI-01", "Make up Possibilities", "rated",
+    "Make-up possibilities in 50 words: reserve margin, ability to buy replacement power, PPA/merchant arrangement, seasonality and the plant's ability to recover lost generation."),
+  F("BI-02", "Bottleneck Installations", "rated",
+    "Bottlenecks in 50 words: single points of failure — turbine/generator, HRSG or boiler, generator transformer, penstock, coal handling line, switchyard — the number of units, the level of redundancy, and the quoted replacement or repair lead time if given."),
+  F("BI-03", "Dependencies", "rated",
+    "External dependencies in 50 words: fuel supply and transport, water source, grid evacuation, single offtaker, and any single supplier for critical consumables."),
+  F("BI-04", "Interdependencies", "rated",
+    "Interdependencies in 50 words: shared facilities with other units or group plants, common switchyard, shared control room, common intake, and shared spares."),
+  F("BI-CON", "Conclusion", "rated",
+    "Conclusion in 80 words based on bottlenecks, business resilience, dependencies and interdependencies, and the resulting worst realistic outage duration."),
+];
+
+/* ---------------- Machinery Breakdown — rows 57-66 ---------------- */
+const MB = [
+  F("MB-01", "Transformers", "rated",
+    "Transformer reliability in 60 words: DGA and furan testing frequency and latest results, oil BDV/moisture, tan delta and SFRA, thermography, tap changer maintenance, age of the units and any trend of rising gas levels."),
+  F("MB-02", "Dam", "rated",
+    "For a hydro plant only, in 60 words: statutory/independent dam safety inspection frequency and last review, instrumentation (piezometers, seepage measurement, settlement) and its trend, and any remedial works outstanding. Answer 'Not applicable' for non-hydro plants.",
+    { flex: true }),
+  F("MB-03", "Hydro Turbines", "rated",
+    "For a hydro plant only, in 60 words: runner cavitation and silt erosion, weld repair/coating history, penstock thickness survey interval, governor/OPU condition, and vibration trend. Answer 'Not applicable' for non-hydro plants.",
+    { flex: true }),
+  F("MB-04", "Gas Turbines", "rated",
+    "For a gas turbine or combined cycle plant only, in 70 words: equivalent operating hours (EOH) and starts, combustion inspection / hot gas path inspection / major inspection intervals versus what the OEM recommends and what is actually followed, findings from the last inspection (blade, nozzle, coating condition), and any outstanding OEM technical information letters or service bulletins. Answer 'Not applicable' for any plant with no gas turbine.",
+    { flex: true }),
+  F("MB-05", "Steam Turbines", "rated",
+    "Steam turbine reliability in 60 words: running hours since the last major/minor overhaul, findings (blade condition, erosion, cracking), vibration trend, and whether OEM overhaul intervals are being followed. Answer 'Not applicable' for plants with no steam turbine (hydro, solar, wind).",
+    { flex: true }),
+  F("MB-06", "HRSG", "rated",
+    "For a combined cycle plant, HRSG integrity in 60 words: tube leak history and location, cycle chemistry control and excursions, drum/header inspection findings, and flow-accelerated corrosion checks. For a conventional coal, oil or gas-fired plant with a boiler instead of an HRSG, describe boiler tube integrity in 60 words: number of tube leaks per year, root causes, and the thickness survey programme. Answer 'Not applicable' for hydro, nuclear, solar, wind or diesel plants.",
+    { flex: true }),
+  F("MB-07", "Generators", "rated",
+    "Generator reliability in 60 words: stator/rotor insulation tests (IR, PI, tan delta, partial discharge), rewind history, air gap and vibration monitoring, cooling system condition, and operating hours since the last major inspection."),
+  F("MB-08", "Maintenance and Inspection", "rated",
+    "Maintenance and inspection regime in 100 words: preventive/predictive/breakdown mix, CMMS used, statutory and OEM-recommended inspection intervals versus what is actually followed, condition monitoring methods in use (vibration analysis, thermography, oil analysis, NDT) and whether the findings are actioned, and any maintenance backlog."),
+  F("MB-09", "Critical Spares", "rated",
+    "Critical spares in 50 words: spare transformer, rotor, runner, blades or bundles held, spares philosophy, inventory value, storage condition and the lead time for items not stocked."),
+  F("MB-10", "Warranties and LTSA", "rated",
+    "Warranty and LTSA position in 40 words: whether an OEM long term service agreement is in force, its scope and expiry, and the warranty status of major equipment."),
+  F("MB-11", "Repair Capability", "rated",
+    "Repair capability in 50 words: in-house workshop capability, availability of OEM/third party repair within the country, transport constraints for heavy items, and the realistic repair versus replace position."),
+  F("MB-12", "Experience of Staff", "rated",
+    "Staffing in 50 words: O&M manpower strength, average experience, turnover, training programme, and whether O&M is in-house or contracted."),
+  F("MB-CON", "Conclusion", "rated",
+    "Conclusion in 80 words on overall machinery reliability: maintenance and inspection quality, testing regime, overhaul findings, spares and repair capability, and the machines most likely to drive an MB claim."),
+];
+
+/* ---------------- Natural Hazards — rows 69-75 ---------------- */
+const NH = [
+  F("NH-01", "Earthquake", "rated", "Earthquake exposure in 30 words: seismic zone, PGA or design basis, distance to nearest fault, and the seismic design standard used."),
+  F("NH-02", "Flood", "rated", "Flood exposure in 30 words: flood zone, distance and level relative to the nearest river/sea, plinth level, design flood return period and any past inundation."),
+  F("NH-03", "Storm", "rated", "Windstorm/cyclone exposure in 30 words: design wind speed, cyclone/typhoon zone, and vulnerability of stacks, cooling towers, cladding and switchyard."),
+  F("NH-04", "Lightning", "rated", "Lightning exposure in 30 words: isokeraunic level, lightning protection system, earthing and surge protection, and any past lightning damage."),
+  F("NH-05", "Hail", "rated", "Hail exposure in 30 words: hail frequency and the vulnerability of exposed assets (PV modules, cooling towers, cladding)."),
+  F("NH-06", "Tsunami", "rated", "Tsunami/storm surge exposure in 30 words: distance from coast, ground elevation, and any protection provided."),
+  F("NH-07", "Others", "rated", "Other natural catastrophe exposure in 50 words: landslide/slope stability, subsidence, drought/water scarcity, extreme temperature, snow load or wildfire — whichever the report raises."),
+];
+
+/* ---------------- Claims — rows 78-81 ---------------- */
+const CL = [
+  F("CL-01", "Number of Claims for the Last Five Years", "value_comment",
+    "Put the claim count in the value (or '-' if none). In the comment, in 100 words, give the year, cause and paid/estimated amount for each claim."),
+  F("CL-02", "Average Value of the Claims", "text", "Average claim value in 40 words, in the report currency, in millions."),
+  F("CL-03", "Root Cause Analysis of the Claims", "text", "Root cause of the claims in 50 words: what failed, why, and whether it was formally investigated."),
+  F("CL-04", "Preventive Measures Taken", "rated", "Preventive measures taken after the claims in 100 words: engineering changes, procedural changes, and whether they have been verified as implemented."),
+];
+
+/* ---------------- Risk Improvements — rows 84-88 ---------------- */
+const RI = [
+  F("RI-01", "Total No of Recommendations", "text", "Total number of recommendations in the report. Number only."),
+  F("RI-02", "No of Open Recommendations", "text", "Number of open/pending recommendations. Number only."),
+  F("RI-03", "No of Open Critical Recommendations", "text", "Number of critical / Priority 1 recommendations still open. Number only."),
+  F("RI-04", "Age of Open Recommendations", "text", "How long the open recommendations have been pending, in years, e.g. '4 - less than 1 year, 2 - 2 years'."),
+  F("RI-05", "Age of Critical Recommendations", "text", "How long the open critical recommendations have been pending, in years. Name the single most severe open critical recommendation if the report allows."),
+];
+
+/* ---------------- Outlook — rows 90-93 ---------------- */
+const OUT = [
+  F("OUT-01", "Outlook for the Risk", "rated",
+    "Outlook in 100 words based on site hazards, construction, control measures, fire protection, machinery condition, NAT CAT exposure and recommendation compliance. State whether the risk is improving, stable or deteriorating."),
+  F("OUT-02", "Useful Information to the Underwriter", "text",
+    "In 150 words: ownership and group, commissioning year, operating and generation performance, PPA/offtake, anything unusual about the risk, and the specific points the underwriter should question at renewal."),
+];
+
+/* ---------------- section registry ---------------- */
+const SECTIONS = [
+  { id: "setup",   title: "Setup and Documents", short: "Setup",       fields: [] },
+  { id: "general", title: "General Information", short: "General",     fields: [...GEN, ...PML] },
+  { id: "pd",      title: "Materials Damage",    short: "Materials Damage", fields: PD },
+  { id: "bi",      title: "Business Interruption", short: "BI",        fields: BI },
+  { id: "mb",      title: "Machinery Breakdown", short: "Machinery Breakdown", fields: MB },
+  { id: "nh",      title: "Natural Hazards",     short: "NAT CAT",     fields: NH },
+  { id: "claims",  title: "Claims",              short: "Claims",      fields: CL },
+  { id: "ri",      title: "Risk Improvements",   short: "Recommendations", fields: RI },
+  { id: "outlook", title: "Outlook and Underwriter Notes", short: "Outlook", fields: OUT },
+  { id: "annex",   title: "Annexure",            short: "Annexure",    fields: [] },
+  { id: "export",  title: "Review and Export",   short: "Export",      fields: [] },
+];
+
+/* The field list is the same for every plant type (one universal sheet) —
+   the plant argument is accepted for call-site compatibility but does not
+   filter anything; only the flex rows' answers change with plant type.   */
+const fieldsFor = (sec, _plant) => sec.fields;
+
+/* Effective field list for a section once the user's own additions and
+   deletions are taken into account. Base fields hidden via state.removedCodes
+   drop out; state.customFields[sec.id] are appended in the order added. */
+const sectionFields = (sec, state) => {
+  const removed = (state && state.removedCodes) || [];
+  const base = sec.fields.filter(f => !removed.includes(f.code));
+  const custom = (state && state.customFields && state.customFields[sec.id]) || [];
+  return [...base, ...custom];
+};
+
+/* Prefix used when generating a code for a custom field added to a section. */
+const CODE_PREFIX = {
+  general: "GEN", pd: "PD", bi: "BI", mb: "MB", nh: "NH",
+  claims: "CL", ri: "RI", outlook: "OUT",
+};
+
+const ALL_FIELDS = SECTIONS.flatMap(s => s.fields);
+const fieldByCode = Object.fromEntries(ALL_FIELDS.map(f => [f.code, f]));
+
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+
+const DEFAULT_MODELS = [
+  "gemini-3.7-flash",
+  "gemini-3.6-flash",
+  "gemini-3.5-flash",
+  "gemini-3.1-pro",
+  "gemini-2.5-flash",
+  "gemini-2.5-pro",
+];
+
+const GEM_BASE = "https://generativelanguage.googleapis.com/v1beta";
+
+/* ---- tiny guarded storage (never throws) ---- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k)    { try { localStorage.removeItem(k); } catch (e) {} },
+};
+
+function toRoman(n) {
+  const table = [[1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],[100,"C"],[90,"XC"],[50,"L"],
+                 [40,"XL"],[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]];
+  let s = "", v = n;
+  for (const [val, sym] of table) { while (v >= val) { s += sym; v -= val; } }
+  return s || "I";
+}
+
+/* ---- Gemini ---------------------------------------------------- */
+async function listModels(apiKey) {
+  const r = await fetch(`${GEM_BASE}/models?key=${encodeURIComponent(apiKey)}`);
+  const j = await r.json();
+  if (!r.ok) throw new Error(j?.error?.message || `HTTP ${r.status}`);
+  return (j.models || [])
+    .filter(m => (m.supportedGenerationMethods || []).includes("generateContent"))
+    .map(m => m.name.replace(/^models\//, ""))
+    .filter(n => !/embedding|aqa|image|tts|veo|imagen|live/i.test(n));
+}
+
+async function gemini({ apiKey, model, system, user, json, temperature = 0.2, images = [] }) {
+  if (!apiKey) throw new Error("Enter your Gemini API key on the Setup tab first.");
+  const parts = [{ text: user }];
+  images.forEach(src => {
+    const m = /^data:(image\/[a-z+]+);base64,(.*)$/i.exec(src || "");
+    if (m) parts.push({ inlineData: { mimeType: m[1], data: m[2] } });
+  });
+  const body = {
+    contents: [{ role: "user", parts }],
+    generationConfig: { temperature, ...(json ? { responseMimeType: "application/json" } : {}) },
+  };
+  if (system) body.systemInstruction = { parts: [{ text: system }] };
+
+  const r = await fetch(`${GEM_BASE}/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j?.error?.message || `Gemini returned HTTP ${r.status}`);
+  const cand = j.candidates && j.candidates[0];
+  if (!cand) throw new Error(j?.promptFeedback?.blockReason ? `Blocked: ${j.promptFeedback.blockReason}` : "No answer returned.");
+  const text = (cand.content?.parts || []).map(p => p.text || "").join("").trim();
+  if (!text) throw new Error("Empty answer — try a different model or reduce the document size.");
+  return text;
+}
+
+function parseJsonLoose(t) {
+  let s = (t || "").trim().replace(/^```(json)?/i, "").replace(/```$/, "").trim();
+  try { return JSON.parse(s); } catch (e) {}
+  const a = s.indexOf("{"), b = s.lastIndexOf("}");
+  if (a >= 0 && b > a) { try { return JSON.parse(s.slice(a, b + 1)); } catch (e) {} }
+  throw new Error("The model did not return valid JSON. Try again or use a stronger model.");
+}
+
+/* ---- PDF text extraction + OCR --------------------------------- */
+async function extractPdf(file, { forceOcr = false, onProgress = () => {} } = {}) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const pages = [];
+  let ocrUsed = false;
+  for (let i = 1; i <= pdf.numPages; i++) {
+    onProgress(`Reading page ${i} of ${pdf.numPages}`, i / pdf.numPages);
+    const page = await pdf.getPage(i);
+    let txt = "";
+    if (!forceOcr) {
+      const c = await page.getTextContent();
+      txt = c.items.map(it => it.str).join(" ").replace(/\s+/g, " ").trim();
+    }
+    if (forceOcr || txt.length < 60) {
+      onProgress(`OCR on page ${i} of ${pdf.numPages}`, i / pdf.numPages);
+      txt = await ocrPage(page);
+      ocrUsed = true;
+    }
+    pages.push(txt);
+  }
+  return { name: file.name, pages, text: pages.map((t, i) => `\n\n[page ${i + 1}]\n${t}`).join(""), ocrUsed, numPages: pdf.numPages };
+}
+
+let _tessPromise = null;
+function loadTesseract() {
+  if (window.Tesseract) return Promise.resolve(window.Tesseract);
+  if (_tessPromise) return _tessPromise;
+  _tessPromise = new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+    s.onload = () => res(window.Tesseract);
+    s.onerror = () => rej(new Error("Could not load the OCR engine — check the internet connection."));
+    document.head.appendChild(s);
+  });
+  return _tessPromise;
+}
+
+async function ocrPage(page) {
+  const T = await loadTesseract();
+  const vp = page.getViewport({ scale: 2 });
+  const canvas = document.createElement("canvas");
+  canvas.width = vp.width; canvas.height = vp.height;
+  await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
+  const { data } = await T.recognize(canvas, "eng");
+  canvas.width = canvas.height = 0;
+  return (data.text || "").replace(/\s+/g, " ").trim();
+}
+
+/* ---- images ---------------------------------------------------- */
+function fileToDataUrl(file, maxW = 1600) {
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onerror = () => rej(new Error("Could not read the image."));
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxW / img.width);
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        res(c.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = () => res(fr.result);
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+async function imagesFromClipboard(e) {
+  const out = [];
+  const items = (e.clipboardData || {}).items || [];
+  for (const it of items) {
+    if (it.type && it.type.startsWith("image/")) {
+      const f = it.getAsFile();
+      if (f) out.push(await fileToDataUrl(f));
+    }
+  }
+  return out;
+}
+
+/* ---- context builder ------------------------------------------- */
+const CTX_LIMIT = 400000;
+function buildContext(docs) {
+  let t = docs.map(d => `===== DOCUMENT: ${d.name} =====\n${d.text}`).join("\n\n");
+  if (t.length > CTX_LIMIT) t = t.slice(0, CTX_LIMIT) + "\n\n[context truncated]";
+  return t;
+}
+
+const SYSTEM_PROMPT = `You are a senior risk engineer at a reinsurance company preparing a desk top assessment (DTA) of a power generation risk from a survey report.
+
+Rules:
+- Answer ONLY from the supplied survey report text. Never invent figures, makes, models or distances.
+- If the report does not cover a parameter, answer exactly: Not stated in the report.
+- If the parameter does not apply to this plant type, answer: Not applicable - <one word reason>.
+- Write in the clipped, factual register of an underwriting file note. No preamble, no headings, no bullet symbols, no markdown, no restating the question.
+- Keep to the word limit given. Quote figures, capacities, distances, makes and models exactly as printed in the report.
+- Ratings use only: poor, fair, good, very good. Rate against reinsurance market practice for this class, not against the plant's own expectations.
+- Every answer is returned as JSON with up to three keys: value, answer, rating. "answer" is always the main comment. "value" is only used for the handful of parameters that explicitly ask for a short standalone figure (e.g. a claim count) — leave it empty otherwise. "rating" is only used for parameters that ask for one — leave it empty otherwise.`;
+
+/* Kuwait Re logo — embedded so every exported workbook carries it, no upload needed. */
+const KRE_LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAMQAAABgCAYAAABCK92TAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAADxySURBVHhe7X0HeFzVtfWaGY2aZclNtuUq2+DeC5heTG+mhJbQQgglgS95kISUR0IIISEB55FH+UkhCSFAEkqwTQmhxGCDsQEbV9yLXGXZ6hqVKf9a+9wrje2RkWTDx/cyS7oz9566zz5777PPuefeCSQIpJFGGoag951GGmkQaYVII40kpBUijTSSkFaINNJIQloh0kgjCWmFSCONJKQVIo00kpBWiDTSSEJaIdJIIwlphUgjjSSkFSKNNJKQVog00khCWiHS+FzB32ma8P7c+WeHtEKk8fkDNcA2YdvhnX9GSCtEGp9LBPkXMPGUMqQVIo3/WNiQAGqDO3gdsO/PBmmFSONzhUCc0h+UBsTdkeBIodPPCGmFSONzhbgpgiDR5GFfn52Yph8hTeNzh51llZj18kJEo3Gcecp4DOzf04v59PGpKIR0PKhSO+L7+fk6mt9wUJkte4LZU5KRFJcSSRmMD3amQKG1XC2ZzH0OJLzvVtL7ya1Y1aILHvIt6GIkGObyBmyFRuUp3M+j5UxXR8DSWTFKp/QWp3wuuftQtAu3AgxePqVvLrPFkvvp3bdCvII+AbFYHF+49n784/FXeRXAxJPHYvaT30dRr24ugSplO1lqc4mqI8FKgtYxRoxdt63GvfGpKIQVGANW765GICSG+ayOI4QMRsUpKGqSPtWlahDQNRxGYX6O12hgEy3FlvI65lFDVejeMNIVLoawrEi0CScP62/aqOA45WNJSRkijQ0sPxOhRNTSq3bJjmiLx0loIEOF8DyOgk5ZGN23B68YbvSxZBKXIKON3ji/6eNu2rQDm7aXI8is8cY4evTIx8ihrJvxqj8hwWRdQdImt9jVGsLKVVtRVlHF8CCqa+sxekQ/9OvTjeklxCHElJ116l+0tgiVFWKwZrMBVpW1VGHkcZCcVKXM7KdXWrv22tIi9PwkYUrmsqhOnujclEWn7lr9pjj7U7ySN3/yUAO9CFM+1WUV6/DzeBkJhXoFuPrtUj0YwAeL1+L8K36JLSUlDM1FZm4GfvPADbj6kpMslQhTKwRXbFK54iH/pAyJ+t08iyGQ3b7R5dArhOMk1u2pwzMfrkNmFsU5LuFwlizMo4HnGbJYPKIBEs0mNlL+LhnbH4O757tyiG//5XUs21qNcEbIC0kFkR9DjHVkZgTx/DfPdcHEsi1l+Pms91FRU49QBmtOxJg6jhgZpvpjqjtOIeS3FLW2oR43TRuHLxxxOHPLmxV7+UlhEJOtYWyfhO03f/wX7prxd0SbomhoiOLcM6bg8YdvUTbKA+sxARKCFFx2NpWouqYRg6fcaHVVV1fjtBPH4+H7rkdR765Mz3LZFDaDdfgLjq6ulAphsYQfzrYFWLIU2XJbONPE+G2Gm6n1Tzr8S6dRjFeBDHTlqq08sXbwm//WblecV52r3U4JGR6fDH1bDOlxsNoYbgUxLcWeiuvKVbipP7uQfA4FUVFdiyOnfR+rF61kZA5yeubiRY4QJx0/honYe5ZYPUO5YjXLP96CP/91Do6YOAQXnjvV2mBJEo0IVK9GIH80y1FA2+CoPZQwzgQwf3MpasmUSANQ1xRDTWMCNdEYKhubUN8YRXXUHbLq9fVRhsVMGbxuxuY9lVixvQ6VkRjKI3Upj4pIBBW1DSivi2J7ZR2OPbyv5Y2BIwExj8xaW1qJqgaWUV2JPUy/m1a5sq6eSsL8tU3Yw/xVkUaU19RiDxXnqKG9mVM0kDWyoPpmm5x4U9i8nq+J1GPr1jLsLNmDii27UEZ6DVSGuFlepaMyUPmlDMK0i+5A2fod2LlmM7p1L8Ad373UlEEwi89kzKHqrBP9uvQtofNhoVJmKSrTi2dSwDjD3Dfp99OTHgmj4gTLqzgJDpsWC0SphArwaZZCORp0pfa71rv4uCSSya1mq0Pt07entGqEhTOfuVAqRfx06RWklSTzGixe9fGwQmLo0rkTjcRXMObYsRg6YSDu//EVzcpgdejPDAQviXtnPIt773wUHy7bbNemd0Z4JgJ5I9x5O2BNOdSoisSxdU8EWUFqsTqEDA+R0gxRR2MfTNgZGxVDBi1GA2OOGtDD8vr0v/zhFtQ0RBAORxmb+s+Yk8FymSkRa8LVxw+zvLLAuyncH1FYQ3LZ1MHBTKYLIkwfx2onbRkU1BCtYJiuSiM7+rSxQ9Crc66xnf4EO9r5qrLYHFecBbcaWAc5FwqzMSEeHH1CwbAXIxESW9nNUgaPxV+6/gEsfHsFONyh+8Be+PODN2Pi6GLrZ+eesRz1ckKjoXpVkHJJyEkui5FLJ0jmJEYq2kon7UG2LcjRzlc+t1pD6plZrlGIcbL4AWdiLV6jdoj1KZ+jgTAhFS1OgE25dDCaLGH5DDcLz3SeVJqgKw2RCNIYqR6LktArzpWpNig4zsCYyrEKWJcOyoLsviqZdvxYLHnzPqx679e46StnqyCGSxmlZEzqtfGVNz/E7Dc+4Fk2skQPoRGWzXIf6pt2wpVyiPHR9jI08U/FizYTKtYkH08sEev0qcrlvjQl6jHZUwjF1DfFsWRrKaK07NZ0NS7FIb4EyYH6aAJThw5EN1oX6zVixbY92FhWQeEnE6kUIbNAbqA3b9V6TMrGjmEeuTUnDi9CBpkoIbLOYTrfo9QQbcLqXVvPSLikGZybKIcXwWwSL82XHHvve+h5PPncHEaFEOIc5Rc/uRonHjea8wUpHPOpFwn7ZHYpupCQsLKRCc/9cDS7dCzJznUV9CTNt/RSQgtTShqAOEcBuUoSKkFCHiCNbhLKw7L75bk0+rYoKRRpTJCHSi7e6U/JnFySRimDsUXcdYaqpRygvqERDfQKYpogEcon3kiwJccJ0tJSLo+UoCw0F+lofe6lD1G+sZQGiTkzXaRyqwgrqwP4VCbVj7+/DpvKa6ig6kyPONJrE1NaK32byHGkiDJBYU4INx3D4c3D/LXbcc/MBSinOyMB9bidAiyFVqaKk9q7zjsS504ezDBnbR95fSkee2spOmVms+4oO1bKKWLYXRRkv0QJWVMsxpGhE+6/4jgU9yjwBNBZI0+HLZ3gJr9BPPCbl3HbHX9EjB2N+jqcc+FxmPWX7zOebTRrqfQB/G3WO7jx1v+Hck7AOUnBD++9Dj/+ziVWljFHSUnTth1lWLhoA7Iyw2hqasIYTrYHDizyxMqV58rWdQDPzX4POTlhut5xFHYrwGSObqFwAjt3VWPeglXIyQojytFlYN/eGDuqv9ROJZixl/skfkhyyitrMW/hSrZWSxc0DFTOwwcVYujh/chK5mKaBEd55ZZGiA+luyqwZOVm1NMf7pLfGcceNdyjzVG7fsMOLFlVgs2bd2EnXday3bvZxCzk5oYxYlhfFA/oSZ//MOTLgBG+MZEqS3EWfrgGlVV1LDPANFk4YvLhyCZflGLN2q2orW/E4mUb8dMZz2Dtqq0A53FfuuJUXP/laaijGywDl52ThWOmDEMW+dAedFghXCYywc7cxEjs2MDJ9OzlJfTbG214FRNlWdxKDRlKYdO1Hx4hA85l5x8xUCOEY+hvXl+Cx+auRA41P0GrKh/Tj9sbCev0/KxsPHTNiSgu7GKh2yvqcMcz8zhKlCNTFl+KyGZqqBa9arEslFwaEVHX2IgLJh2O286awIm5xgxjjKtSdPLP72zVqYgHHn0Jt/3wT4hReDkBwjnnUyGevJ0KJPfMWadlK0pwxsU/wdYN29nQBlz5tXPx+EM3W34rU2WJCSz7mZnzcfHV9yK/az6qqmrx4M+vwdevO8fKSYVA9rkoKOpK4ajHRecchcce+DoFLhMfLlmHE87+IRnOkZO0XXjWEfjr7241qo12tsu1wCn8zH9+gAuvvBc5HLmkFLH6Jhx33HC8/Lc7LIdL7HJI0OSaPfnsW7iVxmDnznLcesN03H/PNZZ0585K/OzX/8Bb85Zh0fL1QBmtNzJ5uNqtwmAWurKvp50wDt/75vmYSEV2pTuU7q7CRVf/gsZhLZsQwvDD+uDFp7Xs2hWlZZU469KfUiErsb20gh4EeW+jY5yDRAiZ2Vk2ajcwfFBxT8yZdRf69PaWa9uIjo0rzWBTJDBJOlWyp4YT4QiHMV6YK8AOsBGBAulZXsmAoGw51PxB3fN45QJLKQxLSnaZEMvPDUqBlMfEZ98DkIE+Ykhv9CrgSOBh0+4KLCspQ5jujFlrVhhnR5o60DJKuPUtRoqGPFqRsf27mzIIRokpAA/927kP/9wbOkSEvqRcQlLay786A1s3yYI14Jgzp+CBn32FoYpnJi33iv1e+kY1pKIaVeVVwO5K1NFd3B+qzENDNSrLqxGlADU2NlEJXTl9i7pj+PD+qNlJgamuw3MvvGvhpoCm3EasVRvjyPjKqwsQY301PKp216C2qhLvfbiWIxZHNIHp/LlL0KN1ybJN2Ll2B7CnEkcfOdTChF69CvASffpFc17HiMP64ZpbvogvUmGuvOl8XH7tWQgX0uiFOSpRsJ95+t+49uaHUVtbbxzxoRG4gqNWAz2MyJ4qlFMe/GbX1tVhN41dlCNXt665JvyWmfTlZGeisHs+unXrhJ49C9Cd8f58qj3osEKoKqtOTKYwiNU19TGUVNVwwsRwUwam8KylOiREAjUrkG+skCYKxRA2Ij/HCaKwuayGk+EyZEmY5eHbKNNSX/KhcLnNkwf3pGJJIZyAv7t6O0cOqpF1IA/33wwFxwONnOiH0UihGNCtM0b37e7Fdgy+PvgCfvz0O7Bs4ToqQxADRx+OR391PbrmsxMJrdS4iWYLTKAVpiVmHqk7k41rBvljM3v58C1pJRTHHzVSGkbjTJe0rAwbS0qV2uJlFPyq6zkaLFi0EaBBKOrTE+FOjGCexqaECb2DfPeW+cXO3eV4fzHbZWEJXDT9aIvxm//4r2+im/QmFs+5n6PWDfjzwzfjsYduwpO/vRV1257GpKmkTcqek4mP5i7FI7972fL5RlXGJ6R2GR84ZtkIYFEo7tcLK+bOwLblv8Xj/3sLQFkz76GmCbfceBY2LnoYa957EOs/eAhvzLwbvXu6Fbz2wGNN++EawOxaRfKEf3t1NTZV1lHQzCGxOK2SWCeIdGpyiBIsIZbFloaPLsyn8Ds/r4ma/++V2zhJlnVU+TxsBcKi94JimzhJG0HLPrq/PywGUN0QwczFm9GJnexYvDckO9QB09MY6xFDR1IZBtKqtHRrW8CCmrWA9Jhb4Ui9/b//jLdfep+dTh9+VB/MfPJbGDVsoGsOeaAJr7U/JYVthwa5faGyTz5uLILd6T7Ksoey6BYtdJEiWYdRSXmqjuCDNz8ETS7u/N5lGEarTqagtrwWr7xJ+g1UJZLpr0Jt3rQHq9ZtY0ATpl2gm2UE4235hP05dcoI9CwsQCYVS0ovejJoeKSFGZxTznn5LuR0J6/VCfk5+MUjL1gRe4/CrYBl5VCRhMxcukeEM64cITLcdTbjszla5PKQMrcXKVjaNphCqIPFXloz3cHdVF5nkyIt4ontWtkwpmid0NKRbeokrcIwf1F+HgqTXJ1KDp9zV29GtiwES1G/udlJCjC/6hxe1AUD1fmGABauK0U5O9pd7Q+VFiLzY7EQhTKO/Nw8HOndv0idozW4NvoI2d1uWsi/vYlfPvoPgB2Wk5ePn9x+BcaOGMQYjZGELVkyp83WW2lbW9FK9oE0EsOHFlHQWUdWDn73+OtezN549d+L+RlDn2EDcOapYzBscG9XJuceCxetRyTCUcY6QcsREjxQGUqwZf1OponjorPd6GDuIvPJFU7QSNniBf815zAxodtry7eEZOHUk8bImpFpYexatcbC2wJx2+Mi6xH/fATQ5IdLLvQtBTVlaR86rBC2csSaNTkTqjiRWV1aTb/dEeEzRSsF8lulE25UoWIonCNH/4IcFOZQsy3cLZVuph8bIqOUywpQw1KAuoDOFLoJxYUuwBWBp95dg06cl5jL4YXtCzFWcwt1Xo+8TBxzmLu9L1rbhaT04TBHSE4yf3D3X5GopSBR+Tt1zsaYUbS6gjqKgqN7MPKTzZc/SHgyth+GU8FHcx5B38fcjpWrS+h711ic6wOX8fkXF/AzxNGrH3p270qlmMQoWnNa8h2ctC5f5W52iVb1cmNTI+bNX20LBMjKxGknj7V48cF45xhLulz5moDbiGQeg2uvrHc285rxthHWF9pWGpMEJ+x+Or8dPKhw/v2V5ngNnzZnbR86rBAmC8YDJ7DbOeHZURsxf1YMDMklIG2uAoXEjCkaGmMkPpuTq35dcm10Ma4Rz3EylxV2y39Oa5xr4WL3htyvHp1zMPUwWkKBibSq8v6GnRROF5QSLNbdbLJBHpOLeyFDK0sHabE1LyjslodePeR6OWEoo4J/764nUFvDEUvtMKapbWrzJ9XVBlpSMYbZMjjCHnXkMFqMTlZPlIr/2usftSTw+uyFF+bbjcKRw/ojywR8ItNTiDIS2EbaV63bbul8SvbsqcU7C6kQrHfqiWPQt2+Lj+70Qf3Lvlbf81pWWoq1dPkmzKUivfv+Srwxdxm2lXLCTkV10tF2hVCaQLOfqMYzj8kOzbPHT6PBvhkr2Won/NLbDxMqEeFUYvm2KlMGs+ykw7lULo3+LEbXdJeijO+anYVBnMz6aGCnvb1yC3JsmVRNJaN0w4aF66aZQvSp73giaoyf0K8bOmupzcM/3t9AYVB+0qSMqfghmsnUIH1gbbE4d+KQ5uCU6duIJvrhGdTE++++BuEunVi2rHMAr/zzI/ziwRY/2fZEsTKrzxTEg9HlhQsph/u2EOiEfdyIYvQq7M5yKOCcYM+Zv9LCnbiEsHXHbqB6F7K6d8O4UQMsrn+frujWw7mf9bursXyFNthJSFy9VbUNWKJyqPxnnTrRuzegSTdLZRLrIZ5o6ffy62dgwnHfwfHn3okzLr4L51z+E5x64T2YfsW9eEejDOcYrkMdvW2BaG/hgM48I2OBTpSb5yJJYe1BhxVCgm9uEc80XC3dWoZMDrViiOIk/CYA/DP3hCm1zh23O/sB9KZ175zNia831L2yeA1s9mGuDslicJBCHeSwylyWXzUaSygsWn2YNp4TVcEUhi7AglXsJPmtHKGCsvoufH8k0MB+6N0lD0N6aTOhlMct7XYcrq4Tjh6BH912sTZwkS+aV0Txs/95AfNlWQm/S5M/WyCj4QlIEun+sud+6VM1z7OgR08djqKeHCGamIj/8xd8zKkBlcMTmGdnyl3KQVFRZ4wbW2xhwhVfOoXawE7iCP7e+x9j+449Xgww+xXmaapnx8QwdbJbbmUP2aftTeLfd+58HEee+l08/eTb+GjeEqxZuJLTjQTGjRmM6644CddcciL6aREkSrfLF962oln4fcjAeKcpJtDtLN3QYYVQVj/zByVliEkAk4rzNdUJAD9JeUx3PJkuk/72eFoji/fS/eGtFcinu6Sdp9Y0rzUSUi1iafVViiTh0JJqUX4OJvTv6WSCZXy0uZQuWyO0U0k6FY85y7U/nNBph+pVx/l3xx1jNd/tOFrq+sFtF+EY+uOJSB0FK4SmqmpccPW9KNtdZfG6W+/cNt0ZtiBPuDkq+EucSaS7bRgpkKp5VlCCrmcGTjmJc4JMtyqzdWcF5i1YYefCH57WRDuBAf2KMHG07vAbATj31Akcrjm6caRdtnoL3ZsWhXh1zoesMxMTjp+EoUOcq+pGD9LHrz8++S/88uHZiGoyHmjC6Rcci0j9TJR+/BjmzPwx/ueea/HgfdfhKCmTKaoan2okbAdS8qDjaIXTbYHvwgDvbitHmMLnXDY1cn8qncDRxlNQ87IyMKCr3CWmZfianZXYVdVky3ISSo0MGls0EY8zY0I3NrxRRqNNHTvs4qluI58/mXppaQnLplWmQJmLJT77BO4DKYrW8M8e50YYf2RwNbSSaT8wj00KffisdPmf/9P3gLwcuitU79xs7Ph4M77948ctzrZgmyWnUdmrB1rq114jofVRjnGO7L1h+VzE6fTzwzlkBCspK6/iJNmbE8RjWLxkA+nLxRGTpAwt9Zxywhjn3wcyULp2B9ZzTibo6bV/zlxIvtJVHT2Qo48MGjlm2Vzema8uAiqk9Jko6FqAxx66hSN2FmPJJ2NV3FauojRGTvmVz+fhXoxoN/YfHzqGDlMh4ZHQVrKBpdURGhQ2jILcutvBxlMIYvRpx/Zyo4Pf1zM/WEMhpbXUxFMkmdvk+KXVIhl6X1ht+wWPs8d7wzzja0nDSo4Q0AoO/2xkEJ9bIaWersMxQ/vRjZXWaDcp84g866C2QmlbKtCWFEH1K6awRy4ef+gbjBAtjKMB+OP/zsSzL77jcu1blS8cYgoP7VC1YOUnUipGiiDrUi/tKSeORQGVUYhX1NiWCuGVN5ZQwoPIysvG6SePt7Dktpx0zpG04BwlWMH8BessbP77dPnqa6lEnXAkLXym5g+mkRLuADZsKsXWLRxNMiVSTcjv1gl9/Oc8SJMphX1bDzGLu26lEe1GC/UHh4NQCJEQwvwtu7VKR8Ohax2pG6gYCbNWY6YMKGQyCW4QjU1RLNpYRt6KsS63f7gVBY0WulaNCTTSUk0e1BPZnMA60eMIta4Uu6iUboQiNBRrpSMVmKW+sQkXTtK9AUETM1dOor3ziJQmWnS77ysvOxbXX3cmUEO/W5PkTrn4+rd+jy1bqLxGrJeQiEdd+30FaLmT3ZJmX6TWX82hyBlfKY6dSPlk2ZzErtmwA3sqqvHanKUm8GHy8KjJ3khr1UpIgelnTCGTIiCTMeddp0R/ty0gOSge2IuTcG/uRvj01jc02K5WQIscCXTqxNGRcPGuXAcb+x3xHo2HAh0W5H3Q4XLULP2vp7ujZx3inEBKoKydihDsSx8KDND3j6Jfl87I1gMMHpPmrdmKnTUUZvr+stfin1ymuFaYGCpvSeWa8FGIIpEGXHaU14meQC7auB0VdQ10gzTFYz4rw9Vs8EgQtFw7oHs+Rvb1t5srvStHeTsKd+dZNLEUWj/X10Hcfst0jJrCuUodBSwriJ0lO/HV//q9pRUXffTu04eftMrKRxensYFKZHBGxCNxb6QKUyAT60+47NJjNCSaG7Rx8w57hPWDj2j1I7U4+qih6GR3fv12uzynHD+OQTwPZeCDuVQe4pmZ79hy7JDBhRgz0q1KueTqNbaffaZdZ7Zsy36qKXc3R9WLMjK+4lgSfduCg86SlaXtcArfktdGrEOADiqErHYQq8trUBVlc9mBehAoSNfATYApFCRY+/PjeviEgRJwbc2YOsDbM+QxaP6aXeZ2hYLu/raYJEWwvfo6U4EU4gAtbDQaQ2GXHEzhCOElRcnuGqzUs80mBGEbwE0pzKvU1hGWoi0kPHR3XHfSjxtWhHzd+pfiqSWsS3etVbOjqh0QB7W9hHkN/FLdap5CBhf3wr13fAl5RQX0LkhTRhZe+dd7uPv+51x6r1Mnju6vfQecLylNmK5Kyx1ct69JR7LwREm+6mVrSYNXOyHlcQ6KMP2sycxWw+wZtgX9iWfnYHtpJZMFcME5VBaDylYJrvU9C/MxYNwQ5iMtZOBvn3wN20o4qoUzMXpoMXLtZipraCYnYW/G6KslW5sfANWRCKo4MjrVZLlef2dQMd29J9Zn8529RVArhH7fC0rm0yUZ8mcL2ZyHIreTuwwH8drbdAMPAfamZh/4w+7+cNmWbylDfbSRDaDgSqgo1ILETCsjZiz0YAkVIxALIDecgTHe6pLKWLezHMu270SW2kuGqTaJpNsm7pgmhsjy61KG7ryJh6MTh3KfMdoZu2rbHndzTWu6rC9OCREtWgdT/oxYiN9UOJahO8rHjBiITG0PMT+WdPPTeN0meFKgEUEC48FRT/pZRzBO+mjV/SLPPmMSbrtBT36xE0OkkYbhwd+9iLff1b0Bx8suBbn4/n9fAU6IzA9/4alXcdNtj1icdqVqp3ADJ+iNnP8414S8TpAhDIvz8Ec3p9IsM6nvjjjteAqq7i6H8Ze/zsX69VsZmsAVFx/nEhi8bTVEQUEezpjGUUKrTV3zcP1VM9jAAAr65uOss+mCCTJ6jnSeBzg/z8FVl5+MzO4UUra9ksbyyzc9gN27q+1GrEqWQauqrXU7e8V7Pe/dzCUHU2anBQbx009jW4DMCAAD+vXEZC2s1NeRX3l4/R/z8atHZqKC9W7dsceed9+oeWU74TcpJVpXCGB3pB6ltbplrkbQtTEjye4Q0VQGDaHhgO4zyLoH0MBOndC3m4mfX+qyreXYXNbA0dxabV3pH/6H0mo00ibBLNZx1JDeNhqI9FpqyLzVW1HTIGFppHI2oCHCc3vwvxG1en47FkE1r+sbG1BLt2pUn0IM7qEHU0xtTWH0qKjbd2OVHgBM7BHfSGGJaZt7DTuEnRKpl5B6kHapYOOfO+787hcxZTKt7h6mb4xj58fr7cGhdXRjBNV8+zcuwKVXT0OAhgM52fh/M55BRu9LcMYld+PqGx/CEdNux8AJNzLqBMZ3QufOueh+WE+OQj3ZBy20m5NCGvz+u/T8qXTZKnjUo3prGaK7KlhuN+TZTU3RKW7QqKkf2J+ZrP+ICaS1kW5bJemlq4SqOhSwzmMnuaVq24Wsb9bh7p3EcflFx+LLl52CTlRuzZuee+Jf6DHgSzjtojtx1Y2/xtjjb8XQSd/ELI44oGdhw3eXfd6KQfmJ1FERtR+NR10d+ariBfaTe1gpjv59u+OWG89G1z6cjzaQxtwQbv3aQ+ja7XT0KzoPP7ptBu7zboi2B5xPHkDqD4APtu7Bqx9vFf2e2DrhErF6HFH3HEKkPUbl0HJrI5l29cQhKLZnHxL2ooH7XvwQsxav5/AXdsNkS582Q0Wq3AZOOsf264a7vnAMeorhxB7OPZ58dzXKquuoVNqsF2Vd9ImDeqRT7hbp4IghqxMgjxtYx9QhPXD2uMFMawO5jWJ6PFLnYkXLZDYVnNJI+N54exmenT2f1i+KJgr4pHGD8LVrz/SEUOV5Y4YVzC/mWfHxZtz30GxkabhnWE1tHW67+XyM956tVtoqKtjTz8/DnLnLsG7jLlTzWjfUpLCS196FXdGtawGKB/XA5HGHY+iQXhg1tD8nsdmWRvU01y5jxUzbd1Xh23f83hRIxkXGY+K4w/D1a09nKqZmm+xpRl2xQ5Vn1doteODRl1mm2htDtCmB0SP64Bs3nMc0LJtp1C+aOTAB6WfJ/NZo9sKL8/G3f7yP7bt3YXdZDfPG7Oac3CUpW3H/7ijonIcRw/uzDUNw+skcjTxUUwl+/duXsZFzLbVCDwbdetN5HLU0SXeOcEgji1Y12ZbX31qCx59+C4uWr6YxzoSe0izomoMRh/XFxdOPxknH6gUFbUe7FMIJDCfHHPJf/HgLFtMnlXWXMFt/ii97MdjdE9DRu3M2LhtfjM4y82yI3KXbnnibI00dGak9/akFUeVqkl1Lpl57wkjccNJYEdJcn87diY5kOIY5GBvdqQeLZblqU0JK20zzvuUkQyOJqlOqFOlUnoU7Pokm0en45gxFaqhcOXgSLj9NAhu37EIk0uTVRD6y8p7duyA/PzvlJNK44vHDvpSTRkLPlaSGc2WMSyKU7Y+RDq0atgZXh6pgIn6bl0WDInfGXONmngM7Ssuxp7zWmwNJmBP2BGOfXt1MgVtgUsO//fupBSLQpZSvZpw1HruYlWtKqBAJKkQGunbJQ2GPltcZtQcdUojtVRE8u3QjyukmhCX0Gp7JGJtHUHPtNSNGOjuCI4VGg2mHFeEEujvqAjHthcXrcNfzC9CZFkMbs+IUhFT9IOrinEDmZ2fiB9OPwFHUfKPDscTxxE6U2utekwa/NAk9/V1eOj+bJ5aMQih3jum0iuUUwiumFZi4qwgmTNZfz27xxKufFtWEMe752ewopZf76ORFlMhh00KC+9MzJf4WF0f6gSixHFafUtlTgOZKaAGD7WJ/qD1GA/8dVUqv0nllDSUNujYhViGOJu0hs2vVYI3VlUpg2c18dXlk6II2N/PosDmZ0mm0cLUeCNYKtkFvxTI18NvvUeDDtZbUsUh76wdTk2ySrPxM0NzXB48DU9wMNU71uorLqmtRWqNnpkmmGMI/63f5H0QImewU2sNElC5FgKNCNvoVyG9Xw4Jo5OTqjeUlnExr4svcXrnWX7w2eF+KaWwKYmTfQlMGC1N6/btsLpHBa85eDJKgtTQ0ThdHAqMu1F1tuUgSFnM3XDNbhYmYOl/t1FAhGpnHWUUvs6r2V52MDKVXQqd4ejGa7hSbgFpexdkVL8QLXfNgnMTToskYO2ed7k95tZLFuZXyWvU6V3n6Y1izdvNafq1B7eTBEVFxtnihMKZXEo1gaptSK86Juehw3JMFtjgrj7VQiaLeqCAXVKteZgx1T0nGQDTrUFv4RcdJxTBElCofA8V/FqdFA2dGlEfxPlw6pwyaS/rc9sKNX6pA625aSbRMflC70bYRQiWLCqasjTXhuY9KsGFPNcIk0NwMYz4j7VuWl0SH2FC6Vg3MNrRHZ5w/qj+y9R4jYtOeGpxz30x0z+WkW9Kqmw0UUvP943rDHiuUspGL8Yw4Mhg/oFse+vXsQn9dLgQ7nEzntJ1pnRI6eHQQvnKpo7T9+eunjMVQvRRM4TpcH3cALczQRD8YdPMBVZ0ajh5fuDpcbRqfCdqkELaKIOvG8zJO8h7mRDaDyuCPGM1gSbK+AT09FjW7gyiV5KQhPXHM4F4mpMqit2r84e0V6GSP+TmrGIhSWbS8ykQBOrFyZ/S6yQC/61mOlu40d3HmhCWHmjgCSRj3oSEJ0g2qA0eYBM47YhjumD5FjXFEdBhiF/OzHJ05yCp6p/vBT0UFV9uUV9mbQ9P4PKENCsGONyGSQiTw1tpS/GvdDuSG1ZX7dCeTaQhzRppTJFrvguxsfGHsAPTRA/YKZ5Y3lm1CWZ2WWznEenk4LzNlsi0OJjhMytFGk+3Ne6rwl3dWIztDwzCjqXChhJY5qRCtSZSVSwVjfIwuV1FBGH/++lksg3k6CBPoJMnXMG/XchOkqCnhK47aJnVgOv77oXadxucGbVYIfzlyxpyViDRFKQCetdsLTEvh0ERScU301w/r1gVfmjjQul9hEoT2CkElleerj72GHeU1NjJFOYJkyFmkIvnP+qYEBVZbKnT/LC8zgVvPPhKnjva2HXQANok00tUOFm/XDNANQfnlrcCptz6T0vhsP6jRKo1DjQO7tHSV1I2+xmyrqsGeek6m3RCQGuxgW4LT2gEtueYPEiAV4nRPJ/yyCaLKpxtk56pOy48unR5Md6ES5kwcN7TIFNHKZ7CtaJmgpYYokOJpoqzX3+ilyfPWuO3PHYWEX5NvkeXcSNGpCLFRtKQ6+Mk0LY8+utWt5Pg0Pj/4BIXwlMHrtwWby80ea90+tU4wvSa5tvQaRlaGdra6vUtyLexQlSqPQmqTY13bOYNZriywS6vlP1dJKCOAsQN62XO/0RhHJ8qT3gmr9SyTzhRw6sYU8sA4j9Bb4DaUlmNrufeW7g6A4w3pcy6dXDlbnzLeHEgh1F5+69SgPLqWQonCND5POLDLJHNtfj07kOc/fH0RrW0WJ7vyzZWtuZf3gkTRNvzFgqiJRRCL6QW4FCbmi2k7h+5iaxSxNWwKOMuX+EepSEHtmmXaGMO+f9JIdOsknz+I0qo63PX8fCzeWIogR4xQrJ51ZKomV2lrIN32Fu8Y62PSb5w5GRc0b/2WbHMksSKc+n1CaWbdtfz30msf4NU3liCobQ0qmG2x0SMJEnyNev36dMfJx4/FsMN6olOuu8vuKlNefft1+5/6VjTLVdH8k8mwWHWXIzgJLl8aB48DKkTLS38DWF5agddWbaNlzKRA023SOnOKPrAOo5mvq4+jyYRdo4C61HWadat1tF+tepwqQEMa0ia8QMz2fEUa4zhzRH8cPVAvIXMV/e+/FuPpeSuQkZXF+t0dWJvEe/H7geVqWVd3gHWzKFIfxTmTh+D2c6Yg7N2O1X0Je0STdFJHZc/bBO2T+fbtj7lNc1YWR45MHppP6Fx8iGgLt5REpTaioLgYP/7uxbjuylOoGNnkhEZSVSpzIZZIvcVXT7EUJ+HntXGObdCqm7loDHaK4r7FU+ODAtLoMD5BIWQ9HYfL6yKoa+IU1pY8W81iyKQ7sZQK9O+125ATDlPAaaWVRUeqkYVBtvSqm1a640rh1HMLXTuFcfPR2kzm8sxbtRU/m/0hquojvNJNPS9fSilQoRrJtJKlyTUteLwJvQvycM/Fx+Bw72kupzBMa4KZgrZW8MCjs3HbD59ATK+M5Kx99LjB+M7N01Fbw2sJMIV285ZSLKcRmTNvGSr0PLXut9TW4iu3nI9HZ1xPd043NVWj5lKkgvTKDfMVwvhvbiHLI50agNymPWs5LzyFkIGxvuKFt/iRRsdwQO4Zs/VH3nfNzUHfglz07hpGn/ycAx49OmfhpOJebkMj/0zONAR4yrUv1J/OM1NCHrzWTb9tVfWcDMviOkwY3AtFXXJso5kZdf6lVgYHxdunGsBv7fguKavFmh0VFu9GKwkjz6wYpWsHjF4iGsNhg3rjyktOxI3XnoYbv3wGbrj6NPz0B1fg2T9+C4/cdz160W2SoqAgB3/+2xw8M8u9hNjBawWF2ZWob42sbh7lVviYRhMspeS/UxYHC/Wi0jg4HFAhJEeyVeKzyZStBtkVj9RQCpvO0rAN6pGPqK2oMMx3A1JBhatHJeVUHAmB/jJ5vbCkjAkYxzR6nmJUv+56kItGWatdsqqt0GJaZtNeFu2m777yzF+3Aw16WIeXVheLcArh4tsGpW2pW781J8gAKNzoEhtIw2UXHIszpo1nFtWZgcaKavxLj3ES5mIyvbYdaFewpu7aImEqoCr4sX17uT3sv8VeCeNaITfP+sIRzi+15IDdmUYbcEAOSpD0Z8JMvsuT9brKJUgBdZIfe3SfQujXfdTP7i3e6vD9ofRyqwIxHrxQMlnDLIYt2e5eg+JGD+DUkf2QHdY+frpAFpIaSm1P7qlykaybEZxzZIaDeGtFCd0ubSqhmlCpVLQ97We52gqmNdfFg3durdcEXvMvBvllXjr9KOTk51FzGEil2LhpByrsjX50mKQ4ys8225u2+b145UaccfHPEO55MfqM+SqGTLweA0Z+FZm9v4iTz/sRXntziatL+fVFRTogQ9JoE5J6dH9ICN0gznmD/Fsvte2Bb+WwLdVyj5htWO88FGRpvxGjXK+lFjlZNxNcCqWEwrqX5bDCmqYY1u6qYogqT2BU/0IU5Wn5VbRJUVmoYpIL1jmVWKOMLyPyzhWu+a9+hPHV5Vu8GAZYlOYkXgM7AHvumxDtutlue5wEGyFZb0Ymz5kmg4qoyYC2ndibLZSWSmmjA+dqFXW4/NoZmDDyRvzz+X/LG8P4McX40iUnY/z4YjRFI3jz5fdw6snfwvlX3oNde6pJNdsQY3nmm6ZxMDigBPjiJJEzC0boU9uWZaFTHRohbBTXrklqwphe3e0HDeUNu5L2hwQ3TAGxea3nYkmJlEtLvEt3uHsHfnefP3WYvTJfv9GmEs2f9oo2V8U0UAVQPEmWWWBOINyqGfTTBJj9gffMspfUm+gopEMI0ulxcC6Yg3jg+BbXnXV7YooEiViNurpJQlhy0cmTO3/+FJ7+4ytAfhYC3XPw1qw7sejN+/DEo9/Ah2/cj9lP/wiZenV/52y88NwC/OqRWaRaZaucjtOfhsMBFcIJvidpB0y5L9hFlArdxBpamGfyqeVRk1UvRTJsRODoYM/MmrBIITgmeEuwWytr7ad9lU7dfu74gSYEkimnDBKpFmGQYMhqKlTLmqLDnn0IShiDyMgIY3nJbuysqlPl/HeKZRcdBKnwvjVyUfBVuSyD0QasXrcN9fUM92jt1jUfXfK1Jd6vNYh33luJh/8gZdAjmE34/n9dhuOOHsU2amaixgJnnzIeN19zlnvemQz4w1/ewNIV7sdNXH+lcTBol5i3BRJkbbn2n/wq7BxG7y65tOYSGSccqWDC7iSD8M8lzAHURpvw8S63MiSEOaueWNzL3oaoMi0py7fRQQebJWtro4ZXpr98bLH8yM4M4pmFay1MabR06Qt1x+DlVTl+MRxV5erV1Ebw95nvIBFxQhzolImper7a0rgv4aXX3ke0tJYEsoCsIL5xvfuNOfHGbYdxiW++jgrRSGXOysCOj7fg/Y/WW3gaB49DrhCSC/NpPYNdkJWJwd062S99ut73paVtUOr6xgBK9lBQBE+ALj9yKGr09gmtNLkgUx7BjSSt1yPlCIfCeGmReytdCxuSpLMt8Ky/EOZkXXALERqJeMGgairDzd/5PebOW8r5A/38hjgG9C/CVRefaOnN3SHqafFn61WQeVl60gWFnCvp9frNNLE8v0WDBuk3MfQqGH6FQ5j79sdoaNQiQRoHi09BIagJdE/cu/nlIgTRv0secjO1zaIDYDFh5txR24BdNex0TwiPHVqEvGxNrlWqmuFWlPSIoeYKWgCwwWIfGFWkL8xJbmWkAStsWZfhLFeuU9uhkrwKMkJYt2En/v7CfPz+L6/j8afm4Ac//SvOuOhudDvsKvzpqTft+RDoR0v0DqFn70CPHvmOTvGL0A8nLtXrIsMsk4p++qne615UjxRd1XkKLwwazxFG8xLyua6pgSxviUuj4zj0CqGVFHaSCvY7qV9+Dvry0EM+qYT0QLD9PKEEdlTVo4RzCSOZZei3Cc6bNAhNUa3gUwEpLHoZmeI0QtkcwxWxNxgvb053r6Vbf1+4wQvnzKNdQsXM/rJrOANLFq/FJRffieuuuh9XX/Nz3HPnH/DPl+YjqhuLpHHE6EH41UM3IVH5gt3EkzLYEqvn95tiR6gwuslCwkJUIP28rJ5Hj9Q32LaTCK8bORJoMSEc1sNVzEM+zJm7nG6Z/6a/NA4Gh14hWKIZcR1mpuUFhNGnc7a5xi6i5dP84gNqCeMkOBQC/Ri8nsf2Jf2EYf2YVXfCXRlBjiU6tddKajbemnzbfEHlZmDplp2o1BvQqFDu7RAdAIV28pGj8Oabv8Ss2XfhlZfuwd0/ux76HTYT8IYozqbF/+bXplty1e1MhrsS3FtHxC/mycnGky+8h4ETr0fx2BtRPO4mDBp3I0eFmzBg7NcwYOQNWL2Siqy35NXVWxZv4EzjIOH3yiGDdbbkikdyHxVzHtEpTOdHcZRadaCJhU1ClTh1j2qA0N1c3fHdQIXQmz7MMhL6ofbD+/ZA3NwmeRAsQ4Kl5VXVkwKuPCVTggCq6uvx7ir9Uk4rGdoCzo/69eqKE48Zg3POnIzTp03AD751IYr1yzx0Z5CbgRmPzsLSlf5P3RLNVsPBLZm6dkjCe5Bfo4cNxMjh/TBqxECMGtkfI2kARo3ojxHDi3DaGVNw5vSjMe28qTj95LGH7N2m/+k44Oa+jsAUwkoMmJEOyXxR7+TW/GnBOmyprrN9SlIAe/0LY7XoaS8LSPKRm+EJuZZNG3hcMKq/vQFQ5etm4cOvL8Gf5qy057PttSQmU1qi1dZyN71OhkiTgvmNro9Fce6YYvzggqm8slgL/yTstbmPxznnHY1ZT32f5LI1Zu2BJ/4+F1deehegnw6rjOCya6bhqd/e5hPBL5kE1RewHyvv2uU8pu1qVv+qa07Dg7+41kY7scaSGdEcERXGa7VVfNVyaz5dUqVpG/VptIZDPkJYB6u32HmucJ6wR/UjjAO7d+KIkKE5NxPS06dg2huj7doStwJNlt2+z5WllTTIJhkmGHo1ZWe99IplaebgnuaTwlmS/aBo3Q3XHXXl0Ya/VSxzU5l+6KPj4uTuhaj8FpaedvJITDh+PAWcEt05B0//6U2Uqh7HHh6qz+VzdqnRlcN2VVQ0onPnPBTk5dp7X7vke98FeRT+XBR0zkV+QQ668lpvtXOUS3PSOBgccoUwsFRfxu03ITzffGyv7han35JwAiGRkO/fYrH3B/NLSPifmRHEx7uqEbF+dzmG9y3AYT07o1Fukx44orbZTTm9nrK1QqmgNgnn3ES/fLR5VyWWby33ItuBpArUCkEvVbObIETP7t3w1S/rN9siarQd07/4c4tTi+1GpCfKmVkh9Bg2FAn9yn84jgVLV1m4Qcw0t1CbZjgm2JDhynCPozq0zEvS6Cg+FQ6qi+QVsb9YAU+8PivsnIVenYJo1K5PKoWlIWwO0RoodHpHqyyniXo8iA/0gyOmSgkU0UKO02OqsvgSjmAGovQl9IScJ2t7g2F625yULINHiGXrLvjCdTvsRz8OFvbyNlbi9nsBF559BE4870hAv12dHcb8+SvwwsvzjS+i340SWjXLxHFHDbf5CDKysWP5Gny41N0nsReraShjWr3jzt2R1ioZS1F9dhdSty9aFDSNjuFTUQi5Qs2QjNIF8HQCUwcW2ZvAzb7JQvJffrATi1ZAYbfdsCxWz2m/r59uIvwZwqTiXiigD63fo5BwSFycH7+/gFiIuVeki/XHQwFkhYNYtHkXSipoydsDuYb7gfU2Vx1Hrx5dcO7pkxGwN22TMirtjAdnKdIm9loe1r8eFjp6yuH0msQbcisnF9++8y+WTiOeK1KpmdiqZVn2TS7o3gvbrQd10zg4HHKFSJ6j21TC6yO/olFFXeimuO6VQGtiaH5/SuESGK7JMuNtTGDW8uoGlGmp1MOUQb3t4SV7AYEsqMkYCzYCmGDfw4LdG1l1KXpKyivx8faW7SHth0ryiueHzSW8Nl149lQM1Q/MxzhKZGRi4UcbvJ+oMlIIZy4uu+B4jDiCSqGf4MrNxhvPzcWNt/3G9kHVRRqsbeJCI5WmZFspXvjnAsyZt9y8Kbdq5mhIo+M45Aoh+PuGDDptvnSe9mBaTW3ftj/GSYAM+t7v4IcvXPYfQhat6YLN7tcxlUQ7WSdz5AlxTiBFMNdKblOKwy1DqUxZWCkNHQ3mywqG8PbKEvfg0D6QkvvkNMPapXK8UFPypDTkgWshUDygJ848fQoJdVu0IxU1eOqZt+zGm6y/0gr9irrh3juvQrd+hUA1ladLDh79zSxccNV9uPQrM/DV/3oEX//ub3H5dTN4/Wucf8Uvcct3foeSLe5u+6fUnZ97JPeL6yv1y97hbcUh52CyMpjMuFODIzCBI/t2RVVjI+qiUUSa4qhvCqCO1j31EUOE6fRjixEKq7Y41LPRH23dbRbeL//UMQNMyaoaa1FV34haO6Ipj2oKYm0kikr9qEpDFFURfpOOf360HmUV3p6pfWDvYbIGuFZU1zQgtnM3UEn3rW43yvdUW3hze3Viiuwuv33LdDcQlDNP7R48/+S/8ce//dtFMpFTHf1O9CS88tx/45JrNBnnKMh6VryzDLOfeh2/+5+n8fC9T+G5P8/Gu6/MtXcaTJo4lPMITxm9yfZ/HsRY9+Wx2/G/VveXmkPahEN+H+JAkEzJkEYp4Au3VNBVohdBi6kdF3uNKvuB1t0XNRaih2+a2Pnje3Vx9x8sNoC/L1zPshuo5foBSDGplaYxThNTDQba+6Tf3tAPu9SSrrOGFaGosKvlVI3+a2c0EthMx/IGUE+FbqjX9gulof8eDiGPbo5t0+bE318wsHm+fDjmqaqucbtw+afw7JwM5GRpkx7LZkGqz2ul3WzUj8Q8QaVZtnwrgixfdUVjTRgxqD8mjSvGeB5BzoH0+3zinxsbNYP6z4Kkw1bsJEjkgN3XojIkYlUIdh7VwtQ24DNVCAmohEda0fL2P1HrBKbtkLA7ibOzlstDArPXpNO3vC04MJ0tsWonz9hBWhXTQOFKSpGXmbRUrB+SdwLtFiDa2xxTXOVqb8b/E6BKaA+d+o1+g+512Qvlye7Weys1PmP2sfc9ZdA2Cx02zEsCDgDpkD6ku3q/qmu4O7dHL1me/mzrBv/91022Bgm7rIrcIGWxl2bq3oQ5YUQKZXDF6VPEMp0FKB/dGlVndHkpNIqpMzTvUcco0CbYLp/Vayl5iHbPqGvkMeUwuvQuKaUh7B6LOzdWqc36Z5h+a0IXNgp9xr35eQFbb7si9AtGehgsFtIuYmOQl6Lt+ExZKMLVke6M3S/TqaG+ebRoHfaSAV/dKVz2wi5dW5hbtpVctYUF5p5JaZhaxZrAkh7fLdM7lXzsPYC6Cu09SExtMbRGdkm4L5WibSPNAYQrw4qywy9DYeKFru2SeUST4pJaowfBvbJEmYV611aXV5lfxH8ajFsyQjwzd8njbTP/2oHPWCFYoa3seN1qdH8yCX4KednqdglAjCONW4pVCAuiRPlKozCT9FYgfmll37ZfK6tKkA9vdKUGk5llTlmqzVfcaKN4V7XZclcZ63I5WT7TWl0W6dI3l6r2GE36dkEOToGccrr8yqWVtOaCVLZXzH8kyAtnWnhqcpHEmnbgs51U8zA7ps7Vt9frJkCfSL2fiDmtCO1Hsgiey6q6MCtGCewkdaF+ST5Ei+XcN2JfWB2mfjrxyeG3IvTvwlx77MORwrDmOlwGHg66Eixk76i94HqJZVi8X46QlOEA+f/vI4nDZJYnWkT7GPIZT6rTSOPzjU/2V9JI4z8IaYVII40kpBUijTSSkFaINNJIQloh0kgjCWmFSCONJKQVIo00kpBWiDTSSEJaIdJIIwlphUgjjSSkFSKNNJKQVog00mgG8P8BY14OgcTTtTEAAAAASUVORK5CYII=";
+
+/* ---- Excel export ---------------------------------------------- */
+const RATE_FILL = {
+  "poor":      "FFFBE7E5", "fair": "FFFBF1D6",
+  "good":      "FFE1F1E8", "very good": "FFCFE9DC",
+};
+const RATE_FONT = {
+  "poor": "FFA32B23", "fair": "FF8C6212", "good": "FF22694A", "very good": "FF12513A",
+};
+
+async function exportExcel(state) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "Kuwait Re Risk Assessment Tool";
+  const ws = wb.addWorksheet("DTA", { views: [{ showGridLines: false }] });
+  ws.columns = [
+    { width: 10 }, { width: 9 }, { width: 9 }, { width: 9 }, { width: 22 },
+    { width: 13 }, { width: 12 }, { width: 12 }, { width: 12 }, { width: 46 },
+  ];
+  let r = 2;
+  const thin = { style: "thin", color: { argb: "FFC9D4E4" } };
+  const border = { top: thin, left: thin, bottom: thin, right: thin };
+
+  /* Kuwait Re logo, top-left, above the title bar */
+  ws.getRow(1).height = 42;
+  const logoImgId = wb.addImage({ base64: KRE_LOGO_PNG_B64, extension: "png" });
+  ws.addImage(logoImgId, { tl: { col: 1, row: 0 }, ext: { width: 104, height: 51 } });
+
+  const title = ws.getCell(`B${r}`);
+  ws.mergeCells(`B${r}:J${r}`);
+  title.value = `POWER PLANT DESK TOP ASSESSMENT — ${(PLANTS.find(p => p.id === state.plant) || {}).label || ""}`;
+  title.font = { bold: true, size: 13, color: { argb: "FFFFFFFF" } };
+  title.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF16243B" } };
+  title.alignment = { horizontal: "center", vertical: "middle" };
+  ws.getRow(r).height = 24;
+  r += 2;
+
+  const secHeader = (t) => {
+    ws.mergeCells(`B${r}:J${r}`);
+    const c = ws.getCell(`B${r}`);
+    c.value = t.toUpperCase();
+    c.font = { bold: true, size: 11, color: { argb: "FFFFFFFF" } };
+    c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2E4360" } };
+    c.alignment = { horizontal: "center", vertical: "middle" };
+    ws.getRow(r).height = 19;
+    r += 1;
+  };
+
+  for (const sec of SECTIONS) {
+    const fields = sectionFields(sec, state);
+    if (!fields.length) continue;
+    secHeader(sec.title);
+    for (const f of fields) {
+      const v = state.values[f.code] || {};
+      ws.getCell(`A${r}`).value = f.code;
+      ws.getCell(`A${r}`).font = { size: 8, bold: true, color: { argb: "FF7F7F7F" } };
+      ws.getCell(`A${r}`).alignment = { horizontal: "right", vertical: "top" };
+
+      ws.mergeCells(`B${r}:E${r}`);
+      const lab = ws.getCell(`B${r}`);
+      lab.value = f.label;
+      lab.font = { bold: true, size: 10 };
+      lab.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFBE9E0" } };
+      lab.alignment = { vertical: "top", wrapText: true };
+      lab.border = border;
+
+      if (f.kind === "pml") {
+        ws.mergeCells(`F${r}:H${r}`); ws.mergeCells(`I${r}:J${r}`);
+        ws.getCell(`F${r}`).value = v.report || "";
+        ws.getCell(`I${r}`).value = v.adjusted || "";
+        [`F${r}`, `I${r}`].forEach(a => {
+          ws.getCell(a).alignment = { vertical: "top", wrapText: true };
+          ws.getCell(a).border = border; ws.getCell(a).font = { size: 10 };
+        });
+      } else if (f.kind === "rated") {
+        const rc = ws.getCell(`F${r}`);
+        rc.value = v.rating || "";
+        rc.alignment = { horizontal: "center", vertical: "middle" };
+        rc.border = border; rc.font = { size: 10, bold: true, color: { argb: RATE_FONT[v.rating] || "FF2E4360" } };
+        if (RATE_FILL[v.rating]) rc.fill = { type: "pattern", pattern: "solid", fgColor: { argb: RATE_FILL[v.rating] } };
+        ws.mergeCells(`G${r}:J${r}`);
+        const cc = ws.getCell(`G${r}`);
+        cc.value = v.text || "";
+        cc.alignment = { vertical: "top", wrapText: true };
+        cc.border = border; cc.font = { size: 10 };
+      } else if (f.kind === "value_comment") {
+        const vc = ws.getCell(`F${r}`);
+        vc.value = v.value || "";
+        vc.alignment = { horizontal: "center", vertical: "top", wrapText: true };
+        vc.border = border; vc.font = { size: 10, bold: true };
+        ws.mergeCells(`G${r}:J${r}`);
+        const cc = ws.getCell(`G${r}`);
+        cc.value = v.text || "";
+        cc.alignment = { vertical: "top", wrapText: true };
+        cc.border = border; cc.font = { size: 10 };
+      } else {
+        ws.mergeCells(`F${r}:J${r}`);
+        const cc = ws.getCell(`F${r}`);
+        cc.value = v.text || "";
+        cc.alignment = { vertical: "top", wrapText: true };
+        cc.border = border; cc.font = { size: 10 };
+      }
+      const len = ((v.text || "") + (v.report || "") + (v.value || "")).length;
+      ws.getRow(r).height = Math.min(150, Math.max(20, Math.ceil(len / 62) * 14));
+      r += 1;
+    }
+    r += 1;
+  }
+
+  /* annexure images — one block per Annexure section, one or more images each */
+  const annexBlocks = (state.annex || []).filter(b => (b.images || []).length);
+  if (annexBlocks.length) {
+    secHeader("Annexure");
+    annexBlocks.forEach((block, bi) => {
+      ws.mergeCells(`B${r}:J${r}`);
+      const cap = ws.getCell(`B${r}`);
+      cap.value = block.title || `Annexure ${toRoman(bi + 1)} - Image`;
+      cap.font = { bold: true, size: 10 };
+      cap.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFBE9E0" } };
+      r += 1;
+      block.images.forEach(img => {
+        const m = /^data:image\/([a-z]+);base64,(.*)$/i.exec(img.src);
+        if (m) {
+          const id = wb.addImage({ base64: m[2], extension: m[1] === "jpg" ? "jpeg" : m[1] });
+          ws.addImage(id, { tl: { col: 1, row: r - 1 }, ext: { width: 640, height: 380 } });
+          for (let k = 0; k < 20; k++) { ws.getRow(r + k).height = 19; }
+          r += 21;
+        }
+      });
+    });
+  }
+
+  /* second sheet: parameter/code/prompt register */
+  const ws2 = wb.addWorksheet("Field codes");
+  ws2.columns = [
+    { header: "Code", key: "c", width: 12 }, { header: "Section", key: "s", width: 26 },
+    { header: "Parameter", key: "p", width: 40 }, { header: "Rating", key: "r", width: 11 },
+    { header: "Answer", key: "a", width: 90 }, { header: "Query used", key: "q", width: 90 },
+  ];
+  ws2.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+  ws2.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2E4360" } };
+  for (const sec of SECTIONS) {
+    for (const f of sectionFields(sec, state)) {
+      const v = state.values[f.code] || {};
+      ws2.addRow({
+        c: f.code, s: sec.title, p: f.label, r: v.rating || "",
+        a: f.kind === "pml" ? `Report: ${v.report || ""} | Adjusted: ${v.adjusted || ""}`
+           : f.kind === "value_comment" ? `Value: ${v.value || ""} | ${v.text || ""}`
+           : (v.text || ""),
+        q: state.prompts[f.code] || f.prompt,
+      });
+    }
+  }
+  ws2.eachRow(row => { row.alignment = { vertical: "top", wrapText: true }; });
+
+  const buf = await wb.xlsx.writeBuffer();
+  download(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
+    `DTA_${(state.meta.account || "review").replace(/[^\w]+/g, "_").slice(0, 40)}.xlsx`);
+}
+
+function download(blob, name) {
+  const u = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = u; a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(u); a.remove(); }, 400);
+}
+
+function exportJson(state) {
+  const clone = { ...state, docs: state.docs.map(d => ({ ...d })) };
+  download(new Blob([JSON.stringify(clone, null, 1)], { type: "application/json" }),
+    `DTA_session_${new Date().toISOString().slice(0, 10)}.json`);
+}
+
+
+/* ============================================================
+   UI
+   ============================================================ */
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+const blankValues = () => Object.fromEntries(ALL_FIELDS.map(f => [f.code,
+  { text: "", value: "", rating: "", report: "", adjusted: "", images: [], status: "", error: "" }]));
+
+const initialState = () => {
+  const v = blankValues();
+  v["GEN-01"].text = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  v["GEN-14"].text = store.get("krt.engineer", "");
+  return ({
+  apiKey: "",
+  model: store.get("krt.model", DEFAULT_MODELS[0]),
+  models: DEFAULT_MODELS,
+  plant: "gas",
+  meta: { account: "", preparedBy: store.get("krt.engineer", ""), date: new Date().toISOString().slice(0, 10) },
+  docs: [],
+  values: v,
+  prompts: {},
+  customFields: {},
+  removedCodes: [],
+  annex: [
+    { id: "annex-1", title: "Annexure I - Image", images: [] },
+    { id: "annex-2", title: "Annexure II - Image", images: [] },
+  ],
+});};
+
+/* ---------------- small pieces ---------------- */
+function Grow({ value, onChange, minRows = 2, ...rest }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.max(el.scrollHeight, minRows * 22 + 18) + "px";
+  }, [value, minRows]);
+  return <textarea ref={ref} className="inp" value={value} onChange={onChange} {...rest} />;
+}
+
+function Logo() {
+  return (
+    <div className="brand">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M3 16 13 5v7l-6 4 6 4v7z" fill="#2AA6C6"/>
+        <path d="M13 16 23 5v7l-6 4 6 4v7z" fill="#16243B"/>
+      </svg>
+      <div className="brand-txt">Kuwait<br/>Re</div>
+    </div>
+  );
+}
+
+function Nav() {
+  const links = ["Home", "Services", "Knowledge Base", "Risk Assessment Tool", "About", "Contact"];
+  return (
+    <nav className="nav">
+      <div className="nav-in">
+        <Logo />
+        <div className="nav-links">
+          {links.map(l => (
+            <a key={l} href="#" className={l === "Risk Assessment Tool" ? "active" : ""}
+               onClick={e => e.preventDefault()}>{l}</a>
+          ))}
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+function Hero({ state, done, total }) {
+  const plant = PLANTS.find(p => p.id === state.plant);
+  return (
+    <header className="hero">
+      <div className="hero-in">
+        <div className="eyebrow">Risk Engineering — Desk Top Assessment</div>
+        <h1>Power Plant Risk Review</h1>
+        <p>Upload the survey report, run the parameter queries against it, and review every answer before it goes
+           into the DTA sheet. The analysis runs on your own Gemini key, in your browser — nothing is uploaded to a server.</p>
+        <div className="hero-meta">
+          <span className="pill">{plant ? plant.label : "—"}</span>
+          <span className="pill">{state.docs.length} document{state.docs.length === 1 ? "" : "s"} loaded</span>
+          <span className="pill">{done} of {total} parameters filled</span>
+          {state.meta.account ? <span className="pill">{state.meta.account}</span> : null}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+/* ---------------- field row ---------------- */
+function FieldRow({ f, v, prompt, onPatch, onPrompt, onAnalyse, onRemove, busy, toast }) {
+  const [showPrompt, setShowPrompt] = useState(false);
+  const fileRef = useRef(null);
+
+  const copy = async () => {
+    const t = f.kind === "pml" ? `${v.report}\t${v.adjusted}`
+      : f.kind === "value_comment" ? `${v.value}\t${v.text}`
+      : v.text;
+    try { await navigator.clipboard.writeText(t || ""); toast("Copied " + f.code); }
+    catch (e) { toast("Copy blocked by the browser — select the text and press Ctrl+C"); }
+  };
+  const paste = async () => {
+    try {
+      const t = await navigator.clipboard.readText();
+      onPatch({ text: (v.text ? v.text + "\n" : "") + t });
+      toast("Pasted into " + f.code);
+    } catch (e) { toast("Allow clipboard access, or click in the box and press Ctrl+V"); }
+  };
+  const addImages = async (files) => {
+    const arr = [];
+    for (const file of files) if (file.type.startsWith("image/")) arr.push(await fileToDataUrl(file));
+    if (arr.length) onPatch({ images: [...(v.images || []), ...arr] });
+  };
+  const onPaste = async (e) => {
+    const imgs = await imagesFromClipboard(e);
+    if (imgs.length) { e.preventDefault(); onPatch({ images: [...(v.images || []), ...imgs] }); toast("Image attached to " + f.code); }
+  };
+
+  return (
+    <div className={"field" + (busy ? " busy" : "") + (v.error ? " err" : "")}>
+      <div className="f-top">
+        <span className="code">{f.code}</span>
+        <div>
+          <div className="f-name">{f.label}</div>
+          {v.error ? <div style={{ color: "var(--poor-fg)", fontSize: 12, marginTop: 2 }}>{v.error}</div> : null}
+        </div>
+        <span className="f-tag">
+          {f.kind === "rated" ? "rating + comment" : f.kind === "pml" ? "report / adjusted"
+            : f.kind === "value_comment" ? "value + comment" : "text"}
+        </span>
+        {f.flex ? <span className="f-tag" title="Applies only to some plant types — Gemini answers 'Not applicable' for the rest">plant-specific</span> : null}
+        {f.custom ? <span className="f-tag" title="Added by you — not part of the standard sheet">custom</span> : null}
+        <div className="f-tools">
+          {busy ? <span className="spin" /> : null}
+          <button className="btn sm" onClick={() => setShowPrompt(s => !s)} title="Show or edit the query sent to Gemini">Query</button>
+          <button className="btn sm" onClick={() => fileRef.current.click()} title="Attach an image to this parameter">Image</button>
+          <button className="btn sm" onClick={paste} title="Paste from clipboard">Paste</button>
+          <button className="btn sm" onClick={copy} title="Copy this answer">Copy</button>
+          <button className="btn sm acc" onClick={onAnalyse} disabled={busy}>Analyse</button>
+          <button className="btn sm danger" onClick={onRemove} title="Remove this parameter from the sheet">Remove</button>
+        </div>
+        <input ref={fileRef} type="file" accept="image/*" multiple hidden
+               onChange={e => { addImages([...e.target.files]); e.target.value = ""; }} />
+      </div>
+
+      <div className="f-body">
+        {f.kind === "rated" ? (
+          <div className="f-split">
+            <select className="inp rate" data-v={v.rating} value={v.rating}
+                    onChange={e => onPatch({ rating: e.target.value })}>
+              {RATINGS.map(r => <option key={r} value={r}>{r || "— rate —"}</option>)}
+            </select>
+            <Grow value={v.text} onPaste={onPaste} placeholder="Comment — run Analyse, or type/paste here"
+                  onChange={e => onPatch({ text: e.target.value })} />
+          </div>
+        ) : f.kind === "pml" ? (
+          <div className="grid2">
+            <div>
+              <label className="lbl">Report PML</label>
+              <input className="inp" value={v.report} placeholder="as stated in the report"
+                     onChange={e => onPatch({ report: e.target.value })} />
+            </div>
+            <div>
+              <label className="lbl">Adjusted PML</label>
+              <input className="inp" value={v.adjusted} placeholder="Kuwait Re view"
+                     onChange={e => onPatch({ adjusted: e.target.value })} />
+            </div>
+          </div>
+        ) : f.kind === "value_comment" ? (
+          <div className="f-split">
+            <input className="inp" value={v.value} placeholder="Value"
+                   onChange={e => onPatch({ value: e.target.value })} />
+            <Grow value={v.text} onPaste={onPaste} placeholder="Comment — run Analyse, or type/paste here"
+                  onChange={e => onPatch({ text: e.target.value })} />
+          </div>
+        ) : (
+          <Grow value={v.text} minRows={f.code === "OUT-02" ? 3 : 1} onPaste={onPaste} placeholder="Run Analyse, or type/paste here"
+                onChange={e => onPatch({ text: e.target.value })} />
+        )}
+
+        {(v.images || []).length ? (
+          <div className="thumbs">
+            {v.images.map((src, i) => (
+              <div className="thumb" key={i}>
+                <img src={src} alt="" />
+                <button className="x" title="Remove"
+                        onClick={() => onPatch({ images: v.images.filter((_, k) => k !== i) })}>×</button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {showPrompt ? (
+          <div className="prompt-box">
+            <label className="lbl">Query sent to Gemini for {f.code}</label>
+            <textarea value={prompt} onChange={e => onPrompt(e.target.value)} />
+            <div className="row" style={{ marginTop: 7 }}>
+              <button className="btn sm" onClick={() => onPrompt(f.prompt)}>Reset to default</button>
+              <span className="hint">Images attached above are sent with this query.</span>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- setup tab ---------------- */
+function SetupTab({ state, set, toast }) {
+  const [busy, setBusy] = useState("");
+  const [prog, setProg] = useState(0);
+  const [forceOcr, setForceOcr] = useState(false);
+  const [dragHot, setDragHot] = useState(false);
+  const inputRef = useRef(null);
+
+  const addFiles = async (files) => {
+    for (const file of files) {
+      if (!/\.pdf$/i.test(file.name)) { toast("Only PDF files can be read here: " + file.name); continue; }
+      try {
+        const doc = await extractPdf(file, {
+          forceOcr,
+          onProgress: (m, p) => { setBusy(`${file.name} — ${m}`); setProg(p); },
+        });
+        set(s => ({ ...s, docs: [...s.docs, doc] }));
+        toast(`${file.name} loaded — ${doc.numPages} pages${doc.ocrUsed ? " (OCR used)" : ""}`);
+      } catch (e) { toast("Could not read " + file.name + ": " + e.message); }
+    }
+    setBusy(""); setProg(0);
+  };
+
+  const fetchModels = async () => {
+    try {
+      setBusy("Fetching the models available on your key");
+      const m = await listModels(state.apiKey);
+      set(s => ({ ...s, models: m.length ? m : DEFAULT_MODELS, model: m.includes(s.model) ? s.model : m[0] }));
+      toast(`${m.length} models available on this key`);
+    } catch (e) { toast("Could not list models: " + e.message); }
+    finally { setBusy(""); }
+  };
+
+  const totalChars = state.docs.reduce((a, d) => a + d.text.length, 0);
+
+  return (
+    <div>
+      <div className="card">
+        <div className="card-h"><h2>1. Gemini access</h2>
+          <span className="sub">The key stays in this browser tab and is never saved.</span></div>
+        <div className="card-b">
+          <div className="grid2">
+            <div>
+              <label className="lbl">Gemini API key</label>
+              <input className="inp" type="password" value={state.apiKey} placeholder="AIza…"
+                     onChange={e => set(s => ({ ...s, apiKey: e.target.value }))} />
+              <div className="hint">Get a key at aistudio.google.com/apikey. It is required every session.</div>
+            </div>
+            <div>
+              <label className="lbl">Model</label>
+              <div className="row" style={{ flexWrap: "nowrap" }}>
+                <select className="inp" value={state.model}
+                        onChange={e => { store.set("krt.model", e.target.value); set(s => ({ ...s, model: e.target.value })); }}>
+                  {state.models.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+                <button className="btn" onClick={fetchModels} disabled={!state.apiKey}>Refresh list</button>
+              </div>
+              <div className="hint">Flash models are fast and cheap for extraction; Pro models read long reports more carefully.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-h"><h2>2. Risk details</h2></div>
+        <div className="card-b">
+          <div className="grid3">
+            <div>
+              <label className="lbl">Plant type</label>
+              <select className="inp" value={state.plant}
+                      onChange={e => set(s => ({ ...s, plant: e.target.value }))}>
+                {PLANTS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+              </select>
+              <div className="hint">Sets the plant-specific parameters in Materials Damage and Machinery Breakdown.</div>
+            </div>
+            <div>
+              <label className="lbl">Account / plant name</label>
+              <input className="inp" value={state.meta.account}
+                     onChange={e => set(s => ({ ...s, meta: { ...s.meta, account: e.target.value } }))} />
+            </div>
+            <div>
+              <label className="lbl">DTA prepared by</label>
+              <input className="inp" value={state.meta.preparedBy}
+                     onChange={e => { store.set("krt.engineer", e.target.value); set(s => ({ ...s, meta: { ...s.meta, preparedBy: e.target.value } })); }} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-h"><h2>3. Survey report</h2>
+          <span className="sub">PDF only. Scanned reports are read with OCR.</span>
+          <div className="spacer" />
+          <label className="row" style={{ fontSize: 13 }}>
+            <input type="checkbox" checked={forceOcr} onChange={e => setForceOcr(e.target.checked)} />
+            Force OCR on every page
+          </label>
+        </div>
+        <div className="card-b">
+          <div className={"dropzone" + (dragHot ? " hot" : "")}
+               onClick={() => inputRef.current.click()}
+               onDragOver={e => { e.preventDefault(); setDragHot(true); }}
+               onDragLeave={() => setDragHot(false)}
+               onDrop={e => { e.preventDefault(); setDragHot(false); addFiles([...e.dataTransfer.files]); }}>
+            <div style={{ fontWeight: 700, color: "var(--slate)" }}>Drop the survey report here, or click to choose</div>
+            <div style={{ fontSize: 13, marginTop: 4 }}>Several reports can be loaded — prior year surveys, MB reports, claims summaries.</div>
+          </div>
+          <input ref={inputRef} type="file" accept="application/pdf" multiple hidden
+                 onChange={e => { addFiles([...e.target.files]); e.target.value = ""; }} />
+
+          {busy ? (
+            <div style={{ marginTop: 14 }}>
+              <div className="row" style={{ marginBottom: 6 }}><span className="spin" /><b style={{ fontSize: 13 }}>{busy}</b></div>
+              <div className="bar"><i style={{ width: `${Math.round(prog * 100)}%` }} /></div>
+              <div className="hint">OCR takes roughly 3–6 seconds per page. Keep this tab open.</div>
+            </div>
+          ) : null}
+
+          {state.docs.length ? (
+            <div className="doclist" style={{ marginTop: 14 }}>
+              {state.docs.map((d, i) => (
+                <div className="docitem" key={i}>
+                  <b style={{ fontSize: 13.5 }}>{d.name}</b>
+                  <span className="badge neutral">{d.numPages} pages</span>
+                  <span className="badge neutral">{Math.round(d.text.length / 1000)}k characters</span>
+                  {d.ocrUsed ? <span className="badge wait">OCR</span> : <span className="badge ok">text layer</span>}
+                  <div className="spacer" />
+                  <button className="btn sm danger"
+                          onClick={() => set(s => ({ ...s, docs: s.docs.filter((_, k) => k !== i) }))}>Remove</button>
+                </div>
+              ))}
+              {totalChars > CTX_LIMIT ? (
+                <div className="warn">The loaded documents exceed the context limit — only the first {Math.round(CTX_LIMIT / 1000)}k
+                  characters are sent. Remove older reports for a sharper analysis.</div>
+              ) : null}
+            </div>
+          ) : (
+            <div className="note" style={{ marginTop: 14 }}>No document loaded yet. You can still fill the sheet by hand,
+              but the Analyse buttons need a report to read from.</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- add / remove parameters ---------------- */
+function AddFieldRow({ sec, onAdd }) {
+  const [open, setOpen] = useState(false);
+  const [label, setLabel] = useState("");
+  const [kind, setKind] = useState("rated");
+  const [prompt, setPrompt] = useState("");
+
+  const submit = () => {
+    if (!label.trim()) return;
+    onAdd({ label: label.trim(), kind, prompt: prompt.trim() || `Answer for "${label.trim()}" based on the survey report.` });
+    setLabel(""); setPrompt(""); setKind("rated"); setOpen(false);
+  };
+
+  if (!open) {
+    return <button className="btn" style={{ marginTop: 4 }} onClick={() => setOpen(true)}>+ Add parameter to {sec.short}</button>;
+  }
+
+  return (
+    <div className="field" style={{ borderStyle: "dashed" }}>
+      <div className="f-body">
+        <div className="grid2">
+          <div>
+            <label className="lbl">Parameter name</label>
+            <input className="inp" value={label} autoFocus placeholder="e.g. Switchyard"
+                   onChange={e => setLabel(e.target.value)}
+                   onKeyDown={e => { if (e.key === "Enter") submit(); }} />
+          </div>
+          <div>
+            <label className="lbl">Field type</label>
+            <select className="inp" value={kind} onChange={e => setKind(e.target.value)}>
+              <option value="rated">Rating + comment</option>
+              <option value="text">Text only</option>
+              <option value="value_comment">Short value + comment</option>
+            </select>
+          </div>
+        </div>
+        <label className="lbl" style={{ marginTop: 10 }}>Query for Gemini (optional — editable later from the Query button)</label>
+        <textarea className="inp" style={{ minHeight: 56 }} value={prompt}
+                  placeholder="What should Gemini look for in the report for this parameter?"
+                  onChange={e => setPrompt(e.target.value)} />
+        <div className="row" style={{ marginTop: 10 }}>
+          <button className="btn acc" onClick={submit} disabled={!label.trim()}>Add to {sec.short}</button>
+          <button className="btn ghost" onClick={() => setOpen(false)}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- section tab ---------------- */
+function SectionTab({ sec, state, set, toast, busyCodes, runField, runSection, sectionBusy, onAddField, onRemoveField }) {
+  const fields = sectionFields(sec, state);
+  const filled = fields.filter(f => {
+    const v = state.values[f.code] || {};
+    return (v.text || "").trim() || (v.report || "").trim() || (v.adjusted || "").trim();
+  }).length;
+
+  const patch = (code, p) => set(s => ({ ...s, values: { ...s.values, [code]: { ...s.values[code], ...p, error: p.error ?? "" } } }));
+
+  return (
+    <div className="card">
+      <div className="card-h">
+        <h2>{sec.title}</h2>
+        <span className="badge neutral">{filled} / {fields.length} filled</span>
+        <div className="spacer" />
+        {sectionBusy ? <span className="row"><span className="spin" /><span className="step-txt">{sectionBusy}</span></span> : null}
+        <button className="btn acc" onClick={runSection} disabled={!!sectionBusy}>Analyse this section</button>
+      </div>
+      <div className="card-b">
+        {sec.id === "pd" || sec.id === "mb" ? (
+          <div className="note" style={{ marginBottom: 14 }}>
+            Rows tagged <b>plant-specific</b> only apply to some plant types — for <b>{(PLANTS.find(p => p.id === state.plant) || {}).label}</b>,
+            Analyse will return "Not applicable" on the ones that do not fit. Change the plant type on the Setup tab if this account is a different technology.
+          </div>
+        ) : null}
+        {fields.map(f => (
+          <FieldRow key={f.code} f={f} v={state.values[f.code]}
+                    prompt={state.prompts[f.code] ?? f.prompt}
+                    onPatch={p => patch(f.code, p)}
+                    onPrompt={t => set(s => ({ ...s, prompts: { ...s.prompts, [f.code]: t } }))}
+                    onAnalyse={() => runField(f)}
+                    onRemove={() => onRemoveField(sec.id, f)}
+                    busy={busyCodes.has(f.code)} toast={toast} />
+        ))}
+        <AddFieldRow sec={sec} onAdd={p => onAddField(sec.id, p)} />
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- annexure ---------------- */
+/* Matches the workbook's own "Annexure I - Image" / "Annexure II - Image"
+   sections. Each section takes one or more images — paste, drop or choose —
+   and further sections can be added beyond the two the template ships with. */
+function AnnexBlock({ block, onPatch, onRemove, removable, toast }) {
+  const [hot, setHot] = useState(false);
+  const zoneRef = useRef(null);
+  const fileRef = useRef(null);
+
+  const addFiles = async (files) => {
+    const items = [];
+    for (const file of files) if (file.type.startsWith("image/"))
+      items.push({ id: Math.random().toString(36).slice(2), src: await fileToDataUrl(file, 1800) });
+    if (items.length) onPatch({ images: [...block.images, ...items] });
+  };
+  const onPaste = async (e) => {
+    const imgs = await imagesFromClipboard(e);
+    if (imgs.length) {
+      e.preventDefault();
+      onPatch({ images: [...block.images, ...imgs.map(src => ({ id: Math.random().toString(36).slice(2), src }))] });
+      toast(imgs.length + " image(s) added to " + block.title);
+    }
+  };
+
+  return (
+    <div className="field">
+      <div className="f-top">
+        <input className="inp" style={{ maxWidth: 360, fontWeight: 650, fontSize: 14 }}
+               value={block.title} onChange={e => onPatch({ title: e.target.value })} />
+        <div className="f-tools">
+          <span className="badge neutral">{block.images.length} image{block.images.length === 1 ? "" : "s"}</span>
+          <button className="btn sm" onClick={() => fileRef.current.click()}>Add image</button>
+          {removable ? <button className="btn sm danger" onClick={onRemove}>Remove section</button> : null}
+        </div>
+      </div>
+      <div className="f-body">
+        <div ref={zoneRef} tabIndex={0} className={"dropzone" + (hot ? " hot" : "")}
+             onPaste={onPaste}
+             onClick={() => fileRef.current.click()}
+             onDragOver={e => { e.preventDefault(); setHot(true); }}
+             onDragLeave={() => setHot(false)}
+             onDrop={e => { e.preventDefault(); setHot(false); addFiles([...e.dataTransfer.files]); }}>
+          <div style={{ fontWeight: 700, color: "var(--slate)" }}>Click here, then press Ctrl+V to paste — or drop files, or click to choose</div>
+        </div>
+        <input ref={fileRef} type="file" accept="image/*" multiple hidden
+               onChange={e => { addFiles([...e.target.files]); e.target.value = ""; }} />
+        {block.images.length ? (
+          <div className="thumbs" style={{ marginTop: 12 }}>
+            {block.images.map(img => (
+              <div className="thumb" key={img.id}>
+                <img src={img.src} alt="" />
+                <button className="x" title="Remove"
+                        onClick={() => onPatch({ images: block.images.filter(x => x.id !== img.id) })}>×</button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function AnnexTab({ state, set, toast }) {
+  const patchBlock = (id, p) => set(s => ({ ...s, annex: s.annex.map(b => b.id === id ? { ...b, ...p } : b) }));
+  const removeBlock = (id) => set(s => ({ ...s, annex: s.annex.filter(b => b.id !== id) }));
+  const addBlock = () => set(s => ({
+    ...s, annex: [...s.annex, {
+      id: Math.random().toString(36).slice(2),
+      title: `Annexure ${toRoman(s.annex.length + 1)} - Image`, images: [],
+    }],
+  }));
+
+  return (
+    <div className="card">
+      <div className="card-h"><h2>Annexure</h2>
+        <span className="sub">Matches the workbook's own Annexure I / Annexure II image sections — layout drawings, plot plans, photographs.</span></div>
+      <div className="card-b">
+        <div style={{ display: "grid", gap: 14 }}>
+          {state.annex.map(b => (
+            <AnnexBlock key={b.id} block={b} toast={toast}
+                        onPatch={p => patchBlock(b.id, p)}
+                        onRemove={() => removeBlock(b.id)}
+                        removable={state.annex.length > 1} />
+          ))}
+        </div>
+        <button className="btn" style={{ marginTop: 14 }} onClick={addBlock}>+ Add another annexure section</button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- export ---------------- */
+function ExportTab({ state, set, toast, reset }) {
+  const [busy, setBusy] = useState(false);
+  const loadRef = useRef(null);
+
+  const rows = SECTIONS.filter(s => s.fields.length).map(sec => {
+    const fs = sectionFields(sec, state);
+    const filled = fs.filter(f => {
+      const v = state.values[f.code] || {};
+      return (v.text || "").trim() || (v.report || "").trim();
+    }).length;
+    const unrated = fs.filter(f => f.kind === "rated" && !(state.values[f.code] || {}).rating).length;
+    return { sec, total: fs.length, filled, unrated };
+  });
+
+  const doExcel = async () => {
+    setBusy(true);
+    try { await exportExcel(state); toast("Excel file downloaded"); }
+    catch (e) { toast("Export failed: " + e.message); }
+    finally { setBusy(false); }
+  };
+
+  const copyTsv = async () => {
+    const lines = [];
+    for (const sec of SECTIONS) {
+      const fs = sectionFields(sec, state);
+      if (!fs.length) continue;
+      lines.push(sec.title.toUpperCase());
+      fs.forEach(f => {
+        const v = state.values[f.code] || {};
+        const ans = f.kind === "pml" ? `${v.report || ""}\t${v.adjusted || ""}`
+          : f.kind === "value_comment" ? `${v.value || ""}\t${(v.text || "").replace(/\s+/g, " ")}`
+          : `${v.rating || ""}\t${(v.text || "").replace(/\s+/g, " ")}`;
+        lines.push(`${f.code}\t${f.label}\t${ans}`);
+      });
+      lines.push("");
+    }
+    try { await navigator.clipboard.writeText(lines.join("\n")); toast("Sheet copied — paste straight into Excel"); }
+    catch (e) { toast("Copy blocked by the browser — use the .xlsx download instead"); }
+  };
+
+  const loadSession = async (file) => {
+    try {
+      const j = JSON.parse(await file.text());
+      set(s => ({ ...initialState(), ...j, apiKey: s.apiKey, models: s.models }));
+      toast("Session restored");
+    } catch (e) { toast("That file could not be read as a session."); }
+  };
+
+  return (
+    <div>
+      <div className="card">
+        <div className="card-h"><h2>Completion check</h2></div>
+        <div className="card-b">
+          <table className="mini">
+            <thead><tr><th>Section</th><th>Filled</th><th>Unrated</th><th></th></tr></thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.sec.id}>
+                  <td><b>{r.sec.title}</b></td>
+                  <td>{r.filled} / {r.total}</td>
+                  <td>{r.unrated ? <span className="badge wait">{r.unrated} without a rating</span> : <span className="badge ok">complete</span>}</td>
+                  <td style={{ width: 120 }}>
+                    <div className="bar"><i style={{ width: `${Math.round(100 * r.filled / Math.max(1, r.total))}%` }} /></div>
+                  </td>
+                </tr>
+              ))}
+              <tr><td><b>Annexure</b></td>
+                  <td>{state.annex.reduce((a, b) => a + b.images.length, 0)} image(s) across {state.annex.length} section(s)</td>
+                  <td /><td /></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-h"><h2>Deliverables</h2></div>
+        <div className="card-b">
+          <div className="row">
+            <button className="btn acc" onClick={doExcel} disabled={busy}>
+              {busy ? <span className="spin" /> : null} Download DTA workbook (.xlsx)
+            </button>
+            <button className="btn" onClick={copyTsv}>Copy sheet for Excel paste</button>
+            <button className="btn" onClick={() => exportJson(state)}>Save session (.json)</button>
+            <button className="btn" onClick={() => loadRef.current.click()}>Load session</button>
+            <button className="btn" onClick={() => window.print()}>Print / save as PDF</button>
+            <div className="spacer" />
+            <button className="btn danger" onClick={reset}>Start new review</button>
+          </div>
+          <input ref={loadRef} type="file" accept="application/json" hidden
+                 onChange={e => { if (e.target.files[0]) loadSession(e.target.files[0]); e.target.value = ""; }} />
+          <div className="hint" style={{ marginTop: 10 }}>
+            The workbook carries the DTA sheet with colour-coded ratings and the annexure images, plus a second sheet
+            listing every field code, the answer and the query that produced it.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- chat ---------------- */
+function ChatDock({ state, toast }) {
+  const [open, setOpen] = useState(false);
+  const [msgs, setMsgs] = useState([]);
+  const [q, setQ] = useState("");
+  const [busy, setBusy] = useState(false);
+  const bodyRef = useRef(null);
+
+  useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight; }, [msgs, open]);
+
+  const send = async () => {
+    const text = q.trim(); if (!text || busy) return;
+    setQ(""); setMsgs(m => [...m, { r: "u", t: text }]); setBusy(true);
+    try {
+      const filled = SECTIONS.flatMap(s => sectionFields(s, state)).map(f => {
+        const v = state.values[f.code] || {};
+        const a = f.kind === "pml" ? `${v.report || ""} / ${v.adjusted || ""}`
+          : f.kind === "value_comment" ? `${v.value || ""} — ${v.text || ""}`
+          : v.text;
+        return (a || "").trim() ? `${f.code} ${f.label}: ${v.rating ? `[${v.rating}] ` : ""}${a}` : null;
+      }).filter(Boolean).join("\n");
+
+      const history = msgs.slice(-8).map(m => `${m.r === "u" ? "Underwriter" : "You"}: ${m.t}`).join("\n");
+      const ans = await gemini({
+        apiKey: state.apiKey, model: state.model, temperature: 0.3,
+        system: `You are a risk engineer answering questions about a power plant survey report during an underwriting review. Answer only from the report text supplied. If it is not in the report, say so plainly and say what document would answer it. Be concise and factual — no markdown headings, no bullet symbols.`,
+        user: `SURVEY REPORT:\n${buildContext(state.docs) || "(no document loaded)"}\n\n` +
+              `DTA ANSWERS SO FAR:\n${filled || "(nothing filled yet)"}\n\n` +
+              (history ? `EARLIER IN THIS CONVERSATION:\n${history}\n\n` : "") +
+              `QUESTION: ${text}`,
+      });
+      setMsgs(m => [...m, { r: "a", t: ans }]);
+    } catch (e) {
+      setMsgs(m => [...m, { r: "a", t: "Error: " + e.message }]);
+    } finally { setBusy(false); }
+  };
+
+  const copyMsg = async (t) => {
+    try { await navigator.clipboard.writeText(t); toast("Copied"); }
+    catch (e) { toast("Copy blocked by the browser — select the text and press Ctrl+C"); }
+  };
+
+  if (!open) return <button className="chat-fab" onClick={() => setOpen(true)}>Ask about the report</button>;
+
+  return (
+    <div className="chat-panel">
+      <div className="chat-h">
+        <b>Report assistant</b>
+        <span style={{ fontSize: 12, opacity: .7 }}>{state.model}</span>
+        <div className="spacer" />
+        <button className="btn sm ghost" style={{ color: "#fff" }} onClick={() => setMsgs([])}>Clear</button>
+        <button className="btn sm ghost" style={{ color: "#fff" }} onClick={() => setOpen(false)}>Close</button>
+      </div>
+      <div className="chat-body" ref={bodyRef}>
+        {!msgs.length ? (
+          <div className="msg a">Ask anything about the loaded report — "what fire protection covers the GT enclosures?",
+            "list every Priority 1 recommendation", "what is the transformer oil test history?".</div>
+        ) : null}
+        {msgs.map((m, i) => (
+          <div key={i} className={"msg " + m.r}>
+            <div>{m.t}</div>
+            {m.r === "a" ? (
+              <button className="btn sm ghost" style={{ marginTop: 6, padding: "3px 9px", fontSize: 11.5 }}
+                      onClick={() => copyMsg(m.t)} title="Copy this answer">Copy</button>
+            ) : null}
+          </div>
+        ))}
+        {busy ? <div className="msg a"><span className="spin" /> reading the report…</div> : null}
+      </div>
+      <div className="chat-f">
+        <textarea value={q} onChange={e => setQ(e.target.value)} placeholder="Ask a question…"
+                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} />
+        <button className="btn acc" onClick={send} disabled={busy}>Send</button>
+      </div>
+    </div>
+  );
+}
+
+
+/* ============================================================
+   ROOT
+   ============================================================ */
+/* Filled by the reviewer, not read from the report — skipped by Analyse. */
+const SKIP_ANALYSE = new Set(["GEN-01", "GEN-14"]);
+
+function App() {
+  const [state, set] = useState(initialState);
+  const [tab, setTab] = useState(0);
+  const [toastMsg, setToastMsg] = useState("");
+  const [busyCodes, setBusyCodes] = useState(new Set());
+  const [sectionBusy, setSectionBusy] = useState("");
+  const toastTimer = useRef(null);
+
+  const toast = useCallback((m) => {
+    setToastMsg(m);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToastMsg(""), 3200);
+  }, []);
+
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [tab]);
+
+  const sec = SECTIONS[tab];
+  const visibleFields = useMemo(
+    () => SECTIONS.flatMap(s => sectionFields(s, state)),
+    [state.plant, state.customFields, state.removedCodes]);
+  const doneCount = visibleFields.filter(f => {
+    const v = state.values[f.code] || {};
+    return (v.text || "").trim() || (v.report || "").trim();
+  }).length;
+
+  const promptFor = (f) => state.prompts[f.code] ?? f.prompt;
+  const context = () => buildContext(state.docs);
+
+  const guard = () => {
+    if (!state.apiKey) { toast("Enter your Gemini API key on the Setup tab."); setTab(0); return false; }
+    if (!state.docs.length) { toast("Load the survey report first."); setTab(0); return false; }
+    return true;
+  };
+
+  /* payload is always {value, answer, rating} — each field kind uses the keys it needs. */
+  const applyAnswer = (f, payload) => {
+    const p = payload || {};
+    set(s => {
+      const cur = s.values[f.code];
+      const next = { ...cur, error: "" };
+      if (f.kind === "pml") {
+        next.report = (p.answer || "").trim();
+      } else if (f.kind === "value_comment") {
+        next.value = (p.value || "").trim();
+        next.text = (p.answer || "").trim();
+      } else {
+        next.text = (p.answer || "").trim();
+        if (f.kind === "rated" && p.rating && RATINGS.includes(p.rating.toLowerCase()))
+          next.rating = p.rating.toLowerCase();
+      }
+      return { ...s, values: { ...s.values, [f.code]: next } };
+    });
+  };
+
+  const mark = (code, on) => setBusyCodes(prev => {
+    const n = new Set(prev); on ? n.add(code) : n.delete(code); return n;
+  });
+
+  /* ---- add / remove parameters ---- */
+  const addCustomField = (secId, { label, kind, prompt }) => {
+    set(s => {
+      const existing = s.customFields[secId] || [];
+      const n = existing.length + 1;
+      const code = `${CODE_PREFIX[secId] || secId.toUpperCase()}-X${n}`;
+      const field = { code, label, kind, prompt, custom: true };
+      return {
+        ...s,
+        customFields: { ...s.customFields, [secId]: [...existing, field] },
+        values: { ...s.values, [code]: { text: "", value: "", rating: "", report: "", adjusted: "", images: [], status: "", error: "" } },
+      };
+    });
+    toast(`Added "${label}"`);
+  };
+
+  const removeField = (secId, f) => {
+    const v = state.values[f.code] || {};
+    const hasData = (v.text || "").trim() || (v.value || "").trim() || (v.report || "").trim();
+    if (hasData && !confirm(`Remove "${f.label}"? Its answer will be discarded.`)) return;
+    set(s => {
+      const nextValues = { ...s.values };
+      delete nextValues[f.code];
+      if (f.custom) {
+        return {
+          ...s, values: nextValues,
+          customFields: { ...s.customFields, [secId]: (s.customFields[secId] || []).filter(x => x.code !== f.code) },
+        };
+      }
+      return { ...s, values: nextValues, removedCodes: [...s.removedCodes, f.code] };
+    });
+    toast(`Removed "${f.label}"`);
+  };
+
+  /* ---- single parameter ---- */
+  const runField = async (f) => {
+    if (!guard()) return;
+    mark(f.code, true);
+    try {
+      const user =
+        `SURVEY REPORT:\n${context()}\n\n` +
+        `PARAMETER: ${f.code} — ${f.label}${f.flex ? " (applies only to some plant types)" : ""}\n` +
+        `PLANT TYPE: ${(PLANTS.find(p => p.id === state.plant) || {}).label}\n` +
+        `QUERY: ${promptFor(f)}\n\n` +
+        `Return JSON only: {"value":"<short value, only if this parameter explicitly asks for one — else empty>",` +
+        `"answer":"<the main comment or answer>",` +
+        `"rating":"<poor|fair|good|very good — only if this parameter is rated, else empty>"}`;
+      const raw = await gemini({
+        apiKey: state.apiKey, model: state.model, system: SYSTEM_PROMPT, user, json: true,
+        images: (state.values[f.code] || {}).images || [],
+      });
+      const j = parseJsonLoose(raw);
+      applyAnswer(f, j);
+    } catch (e) {
+      set(s => ({ ...s, values: { ...s.values, [f.code]: { ...s.values[f.code], error: e.message } } }));
+      toast(f.code + " failed: " + e.message);
+    } finally { mark(f.code, false); }
+  };
+
+  /* ---- a whole section, in batches ---- */
+  const runFields = async (fields, labelPrefix) => {
+    const BATCH = 6;
+    for (let i = 0; i < fields.length; i += BATCH) {
+      const chunk = fields.slice(i, i + BATCH);
+      setSectionBusy(`${labelPrefix} ${Math.min(i + BATCH, fields.length)} of ${fields.length}`);
+      chunk.forEach(f => mark(f.code, true));
+      try {
+        const kindDesc = (f) => f.kind === "rated" ? "rating + comment" : f.kind === "pml" ? "report figure"
+          : f.kind === "value_comment" ? "short value + comment" : "text answer";
+        const list = chunk.map(f =>
+          `- ${f.code} | ${f.label}${f.flex ? " (plant-specific — 'Not applicable' if it doesn't fit)" : ""} | needs ${kindDesc(f)} | QUERY: ${promptFor(f)}`
+        ).join("\n");
+        const user =
+          `SURVEY REPORT:\n${context()}\n\n` +
+          `PLANT TYPE: ${(PLANTS.find(p => p.id === state.plant) || {}).label}\n\n` +
+          `Answer each parameter below.\n${list}\n\n` +
+          `Return JSON only, of the shape ` +
+          `{"<code>":{"value":"<short value if asked for, else empty>","answer":"<the main comment or answer>","rating":"<poor|fair|good|very good if rated, else empty>"}} ` +
+          `with one entry per code listed. Respect each query's word limit.`;
+        const raw = await gemini({ apiKey: state.apiKey, model: state.model, system: SYSTEM_PROMPT, user, json: true });
+        const j = parseJsonLoose(raw);
+        chunk.forEach(f => {
+          const got = j[f.code];
+          if (got) applyAnswer(f, typeof got === "string" ? { answer: got } : got);
+          else set(s => ({ ...s, values: { ...s.values, [f.code]: { ...s.values[f.code], error: "No answer returned — run this one on its own." } } }));
+        });
+      } catch (e) {
+        chunk.forEach(f => set(s => ({ ...s, values: { ...s.values, [f.code]: { ...s.values[f.code], error: e.message } } })));
+        toast("Batch failed: " + e.message);
+      } finally {
+        chunk.forEach(f => mark(f.code, false));
+      }
+    }
+    setSectionBusy("");
+  };
+
+  const runSection = async () => {
+    if (!guard()) return;
+    const fields = sectionFields(sec, state).filter(f => !SKIP_ANALYSE.has(f.code));
+    await runFields(fields, `Analysing ${sec.short} —`);
+    toast(sec.title + " analysed — review every answer before export.");
+  };
+
+  const runAll = async () => {
+    if (!guard()) return;
+    for (const s of SECTIONS) {
+      const fields = sectionFields(s, state).filter(f => {
+        const v = state.values[f.code] || {};
+        return !SKIP_ANALYSE.has(f.code) && !(v.text || "").trim() && !(v.report || "").trim();
+      });
+      if (fields.length) await runFields(fields, `Analysing ${s.short} —`);
+    }
+    toast("Full analysis complete — every answer still needs your review.");
+  };
+
+  const reset = () => {
+    if (!confirm("Start a new review? The current answers, documents and annexure images will be cleared.")) return;
+    set(s => ({ ...initialState(), apiKey: s.apiKey, model: s.model, models: s.models }));
+    setTab(0);
+    toast("New review started");
+  };
+
+  return (
+    <div>
+      <Nav />
+      <Hero state={state} done={doneCount} total={visibleFields.length} />
+
+      <div className="tabs">
+        <div className="tabs-in">
+          {SECTIONS.map((s, i) => {
+            const fs = sectionFields(s, state);
+            const full = fs.length && fs.every(f => {
+              const v = state.values[f.code] || {};
+              return (v.text || "").trim() || (v.report || "").trim();
+            });
+            return (
+              <button key={s.id} className={"tab" + (i === tab ? " on" : "")} onClick={() => setTab(i)}>
+                <span className="idx">{i + 1}</span>{s.short}{full ? <span className="dot" /> : null}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <main className="wrap">
+        {sec.id === "setup" ? (
+          <div>
+            <SetupTab state={state} set={set} toast={toast} />
+            <div className="card">
+              <div className="card-h"><h2>4. Run the analysis</h2>
+                <span className="sub">Fills every empty parameter across all sections.</span></div>
+              <div className="card-b">
+                <div className="row">
+                  <button className="btn acc" onClick={runAll} disabled={!!sectionBusy}>
+                    {sectionBusy ? <span className="spin" /> : null} Analyse the whole sheet
+                  </button>
+                  <button className="btn" onClick={() => setTab(1)}>Go to General Information</button>
+                  {sectionBusy ? <span className="step-txt">{sectionBusy}</span> : null}
+                </div>
+                <div className="warn" style={{ marginTop: 12 }}>
+                  Every answer is a draft. Read each one against the report before it leaves your desk — the model
+                  will occasionally attach a figure to the wrong asset, and ratings reflect the report's wording, not your judgement.
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : sec.id === "annex" ? (
+          <AnnexTab state={state} set={set} toast={toast} />
+        ) : sec.id === "export" ? (
+          <ExportTab state={state} set={set} toast={toast} reset={reset} />
+        ) : (
+          <SectionTab sec={sec} state={state} set={set} toast={toast}
+                      busyCodes={busyCodes} runField={runField} runSection={runSection}
+                      sectionBusy={sectionBusy} onAddField={addCustomField} onRemoveField={removeField} />
+        )}
+      </main>
+
+      <div className="footbar">
+        <div className="footbar-in">
+          <button className="btn" onClick={() => setTab(t => Math.max(0, t - 1))} disabled={tab === 0}>← Back</button>
+          <button className="btn pri" onClick={() => setTab(t => Math.min(SECTIONS.length - 1, t + 1))}
+                  disabled={tab === SECTIONS.length - 1}>Next →</button>
+          <span className="step-txt">Step {tab + 1} of {SECTIONS.length} — {sec.title}</span>
+          <div className="spacer" />
+          <span className="step-txt">{doneCount} / {visibleFields.length} parameters filled</span>
+          <button className="btn danger" onClick={reset}>Start new review</button>
+        </div>
+      </div>
+
+      <ChatDock state={state} toast={toast} />
+      {toastMsg ? <div className="toast">{toastMsg}</div> : null}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+</script>
+</body>
+</html>
